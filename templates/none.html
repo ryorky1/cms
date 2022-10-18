@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head >
+        <title>{{layout.header.title}}</title>
+        
+        <link rel="shortcut icon" href="{{system.context}}/favicon.ico">
+
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="keywords" content="x12,parser,healthcare,tools,informatics,research,phd,post-doc,api,python, jamia,amia,pnas,nature">
+        <meta name="robots" content="/, follow, max-snippet:-1, max-image-preview:large">
+        <link href="{{system.context}}/static/css/{{system.theme}}/default.css" rel="stylesheet" type="text/css">
+        <link href="{{system.context}}/static/css/animation/ocean.css" rel="stylesheet" type="text/css">
+        <link href="{{system.context}}/static/css/icons.css" rel="stylesheet" type="text/css">
+        <link href="{{system.context}}/static/css/border.css" rel="stylesheet" type="text/css">
+        <script src="{{system.context}}/static/js/jx/dom.js"></script>
+        <script src="{{system.context}}/static/js/jx/utils.js"></script>
+        <script src="{{system.context}}/static/js/jx/rpc.js"></script>
+        <script src="{{system.context}}/static/js/jx/ext/modal.js"></script>
+        <script src="{{system.context}}/static/js/jquery/jquery.js"></script>
+        <script src="{{system.context}}/static/js/menu.js"></script>
+        <script src="{{system.context}}/static/js/search.js"></script>
+        <script src="{{system.context}}/static/js/fontawesome/js/all.js"></script>
+    </head>
+  
+    <body>
+       
+      <div class="main" style="">
+        
+        <div class="header" onclick="window.location.href='{{system.context}}/'" style="cursor:pointer">
+            {%include "header.html" %}
+        </div>
+        <div class="menu">
+            {% include "menu.html" %}
+        </div>
+        
+       
+        <div class="content">
+            <div id="me">{{html|safe}}</div>
+            {%include "content.html" %}
+        </div>
+       
+        <div class="footer">
+            {%include "footer.html" %}
+        </div>
+      </div>
+       
+        
+    </body>
+</html>

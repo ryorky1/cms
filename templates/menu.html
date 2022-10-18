@@ -1,0 +1,24 @@
+<div><i class="fa-solid fa-bars"></i></div>
+{% for _name in layout.menu %}
+    <div class="item">
+        <div>
+            <i class="{{layout.icons[_name]}}"></i>
+            {{_name}}</div>
+        {%if layout.menu[_name] %}
+        <div class="sub-menu border-round border">
+            
+           {% for _item in layout.menu[_name] %}
+           {%if _item.uri and _item.type not in ['dialog','embed'] %}
+            <div class="active" onclick="menu.apply('{{_item.uri}}','{{_item.text}}','{{_name}}')">
+            {%else%}
+                <!-- working on links/widgets -->
+                <div class="active" onclick='menu.apply_link({{_item|tojson}})'>
+            {%endif%}
+                <i class="fa-solid fa-chevron-right"></i>
+                {{_item.text}}</div>
+           {%endfor%}
+
+        </div>
+        {%endif%}
+    </div>
+{%endfor%}

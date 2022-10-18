@@ -1,0 +1,396 @@
+/***
+    The basic structure of a site is as follows :
+        - header
+        - footer    footer with the author ...
+        - menu      main ways in which the site articulates itself (features)
+        - info      area where there are miscellaneous links or text
+*/
+
+
+
+
+
+body {
+    font-size:16px;
+    font-family: sans-serif;
+    font-weight:lighter;
+}
+.main{	
+    margin-left:10%;
+    margin-right:10%;
+    display:grid;
+    grid-template-rows:120px 48px auto 48px;
+    grid-template-columns: 70% auto;
+    gap:8px;
+    
+    min-height:98vh;    
+    
+    
+}
+
+.menu {
+    padding:8px;
+    border:1px solid #CAD5E0 ;
+    
+    display:grid;
+    grid-column: 1 / span 2;
+    grid-template-columns: 92px repeat(7,auto);
+    gap:4px;
+    text-transform: capitalize;
+    align-items: center;
+    
+}
+.menu .item {
+    font-weight:bold;
+    cursor:pointer;
+    padding:4px;
+    text-align: left;
+   
+    
+   
+    
+    
+}
+
+.menu .sub-menu {
+    
+    display:none;
+    position:absolute;
+    
+    margin-top:2px;
+    min-width:10%;
+    z-index:90;
+    padding:8px;
+    font-weight:lighter;
+    text-align:left;
+    align-items:left; 
+    background-color: rgba(255,255,255,0.8);
+    
+}
+
+.menu .item:hover .sub-menu{
+    
+    display:block;
+    height:auto;    
+}
+.header {
+    
+    display:grid;
+    grid-column: 1 / span 2;
+    grid-template-columns: 128px auto;
+    gap:4px;
+    align-items:center ;
+    align-content: center;
+    text-transform: capitalize;
+    /* background-color: rgba(255,255,255,0.8); */
+    
+    
+   
+}
+
+.header .title {
+    display:grid;
+    align-content: center;
+    font-size:24px;
+    font-weight:bold;
+}
+
+.header img { width:100%;}
+
+.footer {
+    text-align:center;
+    display:grid;
+    grid-template-columns: repeat(3,1fr);
+    gap:4px;
+    padding:8px;
+    font-size:12px;
+    color:black;
+    align-items: center;
+    align-content: center;
+    text-transform: capitalize;
+    /* background-color: rgba(255,255,255,0.8); */
+    
+    grid-column: 1 /span 2;
+}
+
+.main .content {
+    padding:8px;
+    border-radius: 10px;
+    /* box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.25); */
+    /* transition: all 0.2s; */
+    
+}
+
+.index {
+    height:100%;
+    padding:4px;
+    display:grid;
+    align-items: center;
+    grid-template-rows: 80% auto;
+    align-content: center;
+    text-align: center;
+    
+    
+}
+.large-text {font-size: 24px; font-weight: bold;}
+.index .background {
+    
+    
+    border:2px solid transparent;
+    padding:2px;
+    /* Add the blur effect */
+    filter: blur(1.5px);
+    -webkit-filter: blur(1.5px);
+  
+}
+.pane {
+    padding:8px;
+    border-left:1px solid #CAD5E0;
+    /* background-color: rgba(255,255,255,0.8); */
+}
+.active {
+    padding:4px;
+    cursor:pointer;
+    border:2px solid transparent ;
+}
+.active .fa-chevron-right { color:transparent}
+.active:hover {
+    border-bottom-color: #4682b4;
+}
+.active:hover .fa-chevron-right{
+    color : #4682B4;
+}
+.highlight {
+    cursor:pointer;
+    border:4px solid transparent;
+    padding:4px;
+}
+.highlight:hover {
+    border-color:#4682B4 ;
+}
+.button-1 {
+    background-color:#d3d3d3;
+    color:#4682b4;
+    font-weight:bold;
+}
+.button-1:hover {
+    color:#FFFFFF;
+    background-color:#4682b4;
+}
+
+.dialog-title {
+    background-color:#FF6500;color:#FFFFFF;
+    text-transform:capitalize; font-weight:bold; align-items:center;display:grid; grid-template-columns:auto 32px;
+}
+.dialog-button {
+    display:grid;
+    grid-template-columns: auto 115px;
+    gap:4px;
+}
+/*
+* components: people
+*/
+.people .current, .alumni {
+    display:grid;
+    grid-template-columns: repeat(3,1fr);
+    overflow:hidden;
+    gap:30px;
+}
+/* .people .alumni {
+    display:grid;
+    grid-template-columns: repeat(3,1fr);
+    
+    gap:10px;
+} */
+
+.people .person {
+    box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.25);
+    /* background: radial-gradient(#1fe4f5, #3fbafe); */
+    display:grid;
+    min-height:150px;
+    grid-template-columns: 120px auto ;
+    gap:2px;
+    align-items:center;
+    overflow:hidden;
+
+    
+    
+    
+    
+}
+.people .person .name{
+    
+    font-size:22px; text-transform:capitalize; font-weight:normal;
+
+    width:200px; overflow:hidden; 
+    text-transform:capitalize;
+    -o-text-overflow:ellipsis;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    overflow:hidden;
+}
+.person .position {
+    width:200px; overflow:hidden; 
+    text-transform:capitalize;
+    -o-text-overflow:ellipsis;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    overflow:hidden;
+    
+    
+}
+.person .picture {
+    width:120px;
+    height:120px;
+    overflow:hidden;
+    
+    
+    display:grid;
+    align-content:center ;
+    align-items:center;
+    justify-content: center;
+    justify-items: center;
+}
+.person .picture .frame { width:100px; height:100px; overflow:hidden;}
+.person .picture img {
+    width:120px;
+    height:120px;
+    display:block; margin:auto;
+}
+
+
+
+/**
+* components: search
+*/
+.search .frame .suggestion-frame {
+    width:98%;
+    overflow: hidden;
+    overflow-y: auto;
+    word-wrap: normal;
+    margin-top:2px;
+    border-right:1px solid #CAD5E0;
+}
+.search .frame .suggestion-frame .suggestions {
+    display:none;
+    position:absolute;
+    width:55%;
+    height:55%;
+    z-index:9;
+    overflow:hidden;
+    overflow-y: auto;
+    padding:4px;;
+    
+    
+   
+    
+}
+.search .frame .input-frame{
+    display:grid;
+    grid-template-columns: auto 32px 48px ;
+    gap:4px;
+    align-items: center;
+    align-content:center;
+    padding:4px;
+    background-color: rgba(255,255,255,0.8);
+}
+.search .frame .input-frame i {color:#000000}
+.search .frame .input-frame .found { font-size:11px; color:maroon; text-align: center;}
+.search .frame input[type="text"] {
+    
+    padding:8px;
+    font-size:14px;
+    font-weight:normal;
+    border:2px solid transparent;
+    outline: 0px;
+    background-color:#D3D3D3;
+    
+}
+
+.search .frame .suggestions .item {
+    display:grid;
+    grid-template-columns: 60px auto ; 
+    height:60px;  
+    gap:4px;
+    padding:8px;
+    align-items:center;
+}
+
+.search .frame .suggestions .item .title { width:85%; overflow:hidden; font-size:14px; font-weight: normal; text-transform:capitalize; text-overflow: ellipsis;  white-space: nowrap;}
+.search .frame .suggestions .item .author {width:80%; overflow:hidden; font-size:14px; font-weight: lighter;text-transform: capitalize;text-overflow: ellipsis;  white-space: nowrap;}
+.search .frame .suggestions .item .picture{
+    height:50px;
+    display:grid;
+    grid-template-columns: auto;
+    padding:4px;
+}
+.search .frame .suggestions .item .link {
+    display:grid;
+    grid-template-columns: auto  120px;
+    
+    font-size:12px;
+    align-items:center;
+    align-content: center;
+    overflow:hidden;
+}
+.frame .suggestions .item .picture .frame {background-size: cover;}
+
+
+.resume {
+    
+    display:grid;
+    grid-template-columns: 200px auto;
+    gap:4px;
+    text-transform: capitalize;
+    height:90vh;
+
+}
+.resume .article {
+    margin:4px;
+    background-color:rgba(255,255,255,0.8);
+    padding:4px;
+    color:#000000;
+    display:grid;
+    grid-template-columns:5% 86% 8%;
+    grid-gap:4px;
+    align-items:center;
+    
+}
+.small {font-size:12px;}
+.resume .picture {display:grid; height:300px; align-items:center; align-content: center; overflow:hidden}
+.resume .picture div {height:200px; background-position: center;background-position-y: .5px; background-size: cover; background-repeat: no-repeat;}
+
+.resume .name {font-weight:bold; font-size:22px;}
+.resume .position {word-wrap: break-word; margin-top:4px;}
+.card {box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.25);}
+.resume .article .title {overflow:hidden; font-weight:bold;; text-overflow: ellipsis;  white-space: nowrap; }
+.resume .article .citation {font-family:courier;}
+.resume .publications {height:75%; overflow:hidden; overflow-y:auto; }
+
+.class {
+    display:grid;
+    grid-template-columns: auto repeat(3,1fr);
+    gap:1px;
+    background-color: rgba(255,255,255,0.8);
+    padding:4px;
+    color:black; font-size:18px;
+    
+}
+
+.class .description {
+    font-size:22px;
+    font-weight:bold;
+    display:grid;
+    padding:8px;
+    align-items:center;
+    align-content: center;
+    justify-items: center;
+}
+
+.news {
+    background-color: rgba(255, 255, 255, 0.25);
+    height:99%;
+    padding:9px;
+    overflow:hidden;
+    overflow-y: auto;
+}
