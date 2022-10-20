@@ -19,8 +19,10 @@ from jinja2 import Environment, BaseLoader
 _app = Flask(__name__)
 @_app.route('/favicon.ico')
 def favicon():
+    global _config
+    
     return send_from_directory(os.path.join(_app.root_path, 'static/img'),
-                               'vanderbilt-logo.png', mimetype='image/vnd.microsoft.icon')
+                               'logo.png', mimetype='image/vnd.microsoft.icon')
 
 @_app.route("/")
 def _index ():
@@ -39,7 +41,7 @@ def _index ():
     except Exception as e:
         _index_page = "404.html"
         pass
-        
+    print (_config );
     return render_template(_index_page,**_args)
 
 @_app.route('/id/<uid>') 
