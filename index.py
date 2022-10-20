@@ -40,6 +40,7 @@ def _index ():
         _index_page = "index.html"
     except Exception as e:
         _index_page = "404.html"
+        _args['uri'] = request.base_url
         pass
     print (_config );
     return render_template(_index_page,**_args)

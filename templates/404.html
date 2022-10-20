@@ -36,9 +36,36 @@ Vanderbilt University Medical Center
         <script src="{{system.context}}/static/js/search.js"></script>
         <script src="{{system.context}}/static/js/fontawesome/js/all.js"></script>
     </head>
-  
+    <style>
+        .dialog div:first-child{
+            width:500px;
+            padding:4px;
+        }
+        .fa-circle-xmark {color:maroon}
+    </style>
+    <script>
+        $(document).ready(function(){
+            _html = jx.dom.get.value('dialog')
+            jx.dom.hide('dialog')
+            jx.modal.show(_html)
+        })
+    </script>
     <body>
-            <div align="center" class="large-text">
-                404
+        <div class="main">
+            <div class="header">
+                {%include "header.html" %}
             </div>
+               <div id="dialog" class="dialog">
+                <div align="center" class="large-text" style="font-size:48px">
+                    <p><i class="fa-regular fa-circle-xmark"></i> 404
+                        </p>
+
+                </div>
+                <p></p>
+                <div class="border-top" style="padding:8px">
+                    
+                    <div>Page Not Found or Content Unavailable</div>
+                </div>
+               </div>
+        </div>
  </body></html>
