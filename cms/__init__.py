@@ -45,16 +45,19 @@ class components :
                 _submenu[_index] = _item
                 _index += 1
         return _object 
-    def html(uri,id,_args=None) :
+    def html(uri,id,_args={}) :
         """
         This function reads a given uri and returns the appropriate html document, and applies environment context
 
         """
         _html = (open(uri)).read()       
+
+        
         #return ' '.join(['<div id=":id" class=":id">'.replace(':id',id),_html,'</div>'])
         _html   = ' '.join(['<div id=":id" class=":id">'.replace(':id',id),_html,'</div>'])
         appContext = Environment(loader=BaseLoader()).from_string(_html)
         return appContext.render(**_args)
+        # return _html
     def data (_args):
         """
         :store  data-store parameters (data-transport, github.com/lnyemba/data-transport)
