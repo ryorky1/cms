@@ -67,4 +67,9 @@ class components :
         return _data
     def csv(uri) :
         return pd.read(uri).to_html()
+    def apply(**_args):
+        """
+        :uri    uri of the mapping function
+        :args   arguments of the function
+        """
 

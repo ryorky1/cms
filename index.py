@@ -25,25 +25,32 @@ def favicon():
 @_app.route("/")
 def _index ():
     global _config
-    _args = {'system':_config['system']}
-    _args['layout'] = _config['layout']
-    # _args = dict(_args,**_config['layout'])
-    # _args = copy.copy(_config)
-    uri = os.sep.join([_config['layout']['root'], _config['layout']['index']])
-    _html  = cms.components.html(uri,'index')
-    e = Environment(loader=BaseLoader()).from_string(_html)     
-    _args['index'] = e.render(**_args)
-    return render_template("index.html",**_args)
+    _args = {}
+    try:
+        _args = {'system':_config['system']}
+        _args['layout'] = _config['layout']
+        # _args = dict(_args,**_config['layout'])
+        # _args = copy.copy(_config)
+        uri = os.sep.join([_config['layout']['root'], _config['layout']['index']])
+        _html  = cms.components.html(uri,'index')
+        e = Environment(loader=BaseLoader()).from_string(_html)     
+        _args['index'] = e.render(**_args)
+        _index_page = "index.html"
+    except Exception as e:
+        _index_page = "404.html"
+        pass
+        
+    return render_template(_index_page,**_args)
 
 @_app.route('/id/<uid>') 
 def people(uid):
     """
     This function will implement hardened links that can directly "do something"
     """
-    global _config
+    global _config    
     return "0",200
   
-@_app.route('/cms/dialog')
+@_app.route('/dialog')
 def _dialog ():
     global _config 
     _uri = os.sep.join([_config['layout']['root'],request.headers['uri']])
@@ -63,7 +70,7 @@ def _dialog ():
     
     # _html = ( e.render(**_args))
 
-@_app.route('/cms/page',methods=['POST'])
+@_app.route('/page',methods=['POST'])
 def cms_page():
     """
     return the content of a folder formatted for a menu
@@ -103,6 +110,7 @@ if len(sys.argv) > 1:
         i += 2
 if __name__ == '__main__' :
     
+   
     _path = SYS_ARGS['config'] if 'config' in SYS_ARGS else 'config.json'
     if os.path.exists(_path):
         _config = json.loads((open (_path)).read())
