@@ -4,19 +4,23 @@ import pandas as pd
 import transport
 import copy
 from jinja2 import Environment, BaseLoader
+import importlib
+import importlib.util
 
 class components :
+    @staticmethod
     def folders (_path):
         _content = os.listdir(_path)
         
-        return [_name for _name in _content if os.path.isdir(os.sep.join([_path,_name]))]
-        
+        return [_name for _name in _content if os.path.isdir(os.sep.join([_path,_name])) if not _name.startswith('_')]
+    @staticmethod
     def content (_folder) :
         if os.path.exists(_folder) :
             # return [{'text':_name.split('.')[0].replace('_', ' ').replace('-',' ').strip(),'uri': os.sep.join([_folder,_name])} for _name in os.listdir(_folder) if not _name.startswith('_') and os.path.isfile( os.sep.join([_folder,_name]))]
             return [{'text':_name.split('.')[0].replace('_', ' ').replace('-',' ').strip(),'uri': os.sep.join([_folder,_name])} for _name in os.listdir(_folder) if not _name.startswith('_') and os.path.isfile( os.sep.join([_folder,_name]))]
         else:
             return []
+    @staticmethod
     def menu(_path,_config):
         """
         This function will read menu and sub-menu items from disk structure,
@@ -45,6 +49,7 @@ class components :
                 _submenu[_index] = _item
                 _index += 1
         return _object 
+    @staticmethod
     def html(uri,id,_args={}) :
         """
         This function reads a given uri and returns the appropriate html document, and applies environment context
@@ -58,6 +63,7 @@ class components :
         appContext = Environment(loader=BaseLoader()).from_string(_html)
         return appContext.render(**_args)
         # return _html
+    @staticmethod
     def data (_args):
         """
         :store  data-store parameters (data-transport, github.com/lnyemba/data-transport)
@@ -68,11 +74,49 @@ class components :
         _queries= copy.deepcopy(_store['query'])
         _data   = reader.read(**_query)
         return _data
+    @staticmethod
     def csv(uri) :
         return pd.read(uri).to_html()
-    def apply(**_args):
+    @staticmethod
+    def load_plugin(**_args):
         """
-        :uri    uri of the mapping function
-        :args   arguments of the function
+        This function will load external module form a given location and return a pointer to a function in a given module
+        :path   absolute path of the file (considered plugin) to be loaded
+        :name   name of the function to be applied
         """
-
+        _path = _args['path'] #os.sep.join([_args['root'],'plugin'])
+        if os.path.isdir(_path):
+            files = os.listdir(_path)
+            if files :
+                files = [name for name in files if name.endswith('.py')]
+                if files:
+                    _path = os.sep.join([_path,files[0]])
+                else:
+                    return None
+            else:
+                return None
+        #-- We have a file ...  
+        _name = _args['name']
+        spec = importlib.util.spec_from_file_location(_name, _path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        
+        return getattr(module,_name) if hasattr(module,_name) else None
+    @staticmethod
+    def plugins(_config) :
+        PATH= os.sep.join([_config['layout']['root'],'_plugins'])
+        _map = {}
+        if not os.path.exists(PATH) :
+            return _map
+        _conf = _config['plugins']
+        
+        for _key in _conf :
+            _path = os.sep.join([PATH,_key+".py"])
+            
+            for _name in _conf[_key] :
+                _pointer = components.load_plugin(path=_path,name=_name)
+                if _pointer :
+                    _uri = "/".join(["api",_key,_name])
+                    _map[_uri] = _pointer
+        return _map
+            

@@ -19,7 +19,7 @@ menu.apply  = function (uri,id,pid){
    
         httpclient.setHeader('uri',uri)
         httpclient.setHeader('dom',id)
-        httpclient.post('/cms/page',function(x){
+        httpclient.post('/page',function(x){
             var _html = x.responseText
             var template = document.createElement('template');
             template.innerHTML = _html.trim();
@@ -75,7 +75,7 @@ menu.apply_link =function(_args){
             http.setHeader('uri',_args.uri)
             http.setHeader('dom','dialog')
             // http.setHeader('dom',_args.text)
-            http.get('/cms/dialog',function(x){
+            http.get('/dialog',function(x){
                 
                 jx.modal.show({html:x.responseText,id:'dialog'})
             })

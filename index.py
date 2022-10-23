@@ -39,10 +39,12 @@ def _index ():
         _args['index'] = e.render(**_args)
         _index_page = "index.html"
     except Exception as e:
+        print ()
+        print (e)
         _index_page = "404.html"
         _args['uri'] = request.base_url
         pass
-    print (_config );
+   
     return render_template(_index_page,**_args)
 
 @_app.route('/id/<uid>') 
@@ -60,8 +62,8 @@ def _dialog ():
     _id = request.headers['dom']
     _html =  cms.components.html(_uri,_id)
     e = Environment(loader=BaseLoader()).from_string(_html)     
-    _data = cms.components.data(_config)
-    _args = {'system':_config['system'],'data':_data}
+    # _data = cms.components.data(_config)
+    _args = {'system':_config['system']}
     
     _html = ''.join(["<div style='padding:1%'>",str( e.render(**_args)),'</div>'])
     
@@ -72,7 +74,30 @@ def _dialog ():
     # _args = {'system':_config['system'],'data':_data}
     
     # _html = ( e.render(**_args))
+@_app.route('/api/<module>/<name>')
+def _getproxy(module,name) :
+    """
+    This endpoint will load a module and make a function call
+    :_module entry specified in plugins of the configuration
+    :_name  name of the function to execute
+    """
+    global _config
 
+    uri =  '/'.join(['api',module,name])
+    if uri not in _config['plugins'] :
+        _data = {}
+        _code = 404
+    else:
+        pointer = _config['plugins'][uri]
+        _data = pointer ()
+        _code = 200
+    
+    
+    return _data,_code
+@_app.route('/version')
+def _version ():
+    global _config 
+    return _config['system']['version']
 @_app.route('/page',methods=['POST'])
 def cms_page():
     """
@@ -84,8 +109,8 @@ def cms_page():
     
     _html =  cms.components.html(_uri,_id)
     e = Environment(loader=BaseLoader()).from_string(_html)
-    _data = cms.components.data(_config)
-    _args = {'system':_config['system'],'data':_data}
+    # _data = {} #cms.components.data(_config)
+    _args = {'system':_config['system']}
     
     _html = ( e.render(**_args))
     return _html,200
@@ -120,7 +145,12 @@ if __name__ == '__main__' :
         _root = _config['layout']['root']
         _config['layout']['menu'] = cms.components.menu(_root,_config)
         # _config['data'] = cms.components.data(_config)
-        
+        #
+        # Let us load the plugins if any are available 
+        if 'plugins' in _config :
+            _map = cms.components.plugins(_config)
+            if _map :
+                _config['plugins'] = _map
         _args = _config['system']['app']
         _app.run(**_args)
     else:
