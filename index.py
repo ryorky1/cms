@@ -11,7 +11,8 @@ import sys
 import os
 import json
 import copy
-
+import io
+import base64
 from jinja2 import Environment, BaseLoader
 
 
@@ -27,16 +28,18 @@ def favicon():
 @_app.route("/")
 def _index ():
     global _config
-    _args = {}
+    _args = {'system':_config['system'],'routes':_config['plugins']}
     try:
-        _args = {'system':_config['system']}
+        
         _args['layout'] = _config['layout']
         # _args = dict(_args,**_config['layout'])
         # _args = copy.copy(_config)
         uri = os.sep.join([_config['layout']['root'], _config['layout']['index']])
-        _html  = cms.components.html(uri,'index')
-        e = Environment(loader=BaseLoader()).from_string(_html)     
-        _args['index'] = e.render(**_args)
+        _html  = cms.components.html(uri,'index',_args)
+        _args['index'] = _html
+        # e = Environment(loader=BaseLoader()).from_string(_html)   
+        # e = cms.components.context(_config).from_string(_html)
+        # _args['index'] = e.render(**_args)
         _index_page = "index.html"
     except Exception as e:
         print ()
@@ -44,7 +47,7 @@ def _index ():
         _index_page = "404.html"
         _args['uri'] = request.base_url
         pass
-   
+    
     return render_template(_index_page,**_args)
 
 @_app.route('/id/<uid>') 
@@ -94,6 +97,25 @@ def _getproxy(module,name) :
     
     
     return _data,_code
+@_app.route("/api/<module>/<name>" , methods=['POST'])
+def _post (module,name):
+    global _config
+    uri =  '/'.join(['api',module,name])
+    
+    _args = request.json
+    code = 404
+    
+    _info = ""
+    if uri in _config['plugins']  and _args:
+        _pointer = _config['plugins'][uri]
+        _info = _pointer(_args)
+        if _info:
+            code = 200
+        
+        _info  =io.BytesIO(_info)
+        
+        _info = base64.encodebytes(_info.getvalue()).decode('ascii')
+    return _info,code
 @_app.route('/version')
 def _version ():
     global _config 
@@ -110,7 +132,7 @@ def cms_page():
     _html =  cms.components.html(_uri,_id)
     e = Environment(loader=BaseLoader()).from_string(_html)
     # _data = {} #cms.components.data(_config)
-    _args = {'system':_config['system']}
+    _args = {'system':_config['system'],'routes':_config['plugins']}
     
     _html = ( e.render(**_args))
     return _html,200
@@ -149,8 +171,11 @@ if __name__ == '__main__' :
         # Let us load the plugins if any are available 
         if 'plugins' in _config :
             _map = cms.components.plugins(_config)
-            if _map :
-                _config['plugins'] = _map
+            if _map :  
+               _config['plugins'] = _map
+            #
+            # register the functions with Jinja2
+            cms.components.context(_config)
         _args = _config['system']['app']
         _app.run(**_args)
     else:

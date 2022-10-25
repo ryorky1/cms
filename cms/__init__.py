@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import transport
 import copy
-from jinja2 import Environment, BaseLoader
+from jinja2 import Environment, BaseLoader, FileSystemLoader
 import importlib
 import importlib.util
 
@@ -61,6 +61,10 @@ class components :
         #return ' '.join(['<div id=":id" class=":id">'.replace(':id',id),_html,'</div>'])
         _html   = ' '.join(['<div id=":id" class=":id">'.replace(':id',id),_html,'</div>'])
         appContext = Environment(loader=BaseLoader()).from_string(_html)
+        #
+        # If the rendering of the HTML happens here we should plugin custom functions (at the very least)
+        #
+        
         return appContext.render(**_args)
         # return _html
     @staticmethod
@@ -119,4 +123,17 @@ class components :
                     _uri = "/".join(["api",_key,_name])
                     _map[_uri] = _pointer
         return _map
-            
+    @staticmethod
+    def context(_config):
+        """
+        adding custom variables functions to Jinja2, this function should be called after plugins are loaded
+        """
+        _plugins = _config['plugins']
+        # if not location:
+        #     env = Environment(loader=BaseLoader())
+        # else:
+        location = _config['layout']['root']
+        # env = Environment(loader=FileSystemLoader(location))
+        env = Environment(loader=BaseLoader())
+        # env.globals['routes'] = _config['plugins']
+        return env
