@@ -27,7 +27,7 @@ body {
     
     
 }
-
+.bold {font-weight:bold}
 .menu {
     padding:8px;
     border:1px solid #CAD5E0 ;
