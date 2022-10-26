@@ -63,14 +63,19 @@ def _dialog ():
     global _config 
     _uri = os.sep.join([_config['layout']['root'],request.headers['uri']])
     _id = request.headers['dom']
-    _html =  cms.components.html(_uri,_id)
-    e = Environment(loader=BaseLoader()).from_string(_html)     
     # _data = cms.components.data(_config)
     _args = {'system':_config['system']}
+    _args['title'] = _id
+    if 'plugins' in _config :
+        _args['routes'] = _config['plugins']
+    _html =  cms.components.html(_uri,_id,_args)
+    e = Environment(loader=BaseLoader()).from_string(_html)     
+
     
+    _args['html'] = _html
     _html = ''.join(["<div style='padding:1%'>",str( e.render(**_args)),'</div>'])
     
-    return render_template('dialog.html',title=_id,html=_html)
+    return render_template('dialog.html',**_args) #title=_id,html=_html)
     # return _html
     # e = Environment(loader=BaseLoader()).from_string(_html)
     # _data = cms.components.data(_config)
@@ -111,10 +116,12 @@ def _post (module,name):
         _info = _pointer(_args)
         if _info:
             code = 200
+        else:
+            _info = ""
+            
+        # _info  =io.BytesIO(_info)
         
-        _info  =io.BytesIO(_info)
-        
-        _info = base64.encodebytes(_info.getvalue()).decode('ascii')
+        # _info = base64.encodebytes(_info.getvalue()).decode('ascii')
     return _info,code
 @_app.route('/version')
 def _version ():
@@ -128,13 +135,16 @@ def cms_page():
     global _config
     _uri = os.sep.join([_config['layout']['root'],request.headers['uri']])
     _id = request.headers['dom']
-    
-    _html =  cms.components.html(_uri,_id)
+    _args = {'system':_config['system']}
+    if 'plugins' in _config:
+        _args['routes'] = _config['plugins']
+        
+    _html =  cms.components.html(_uri,_id,_args)
     e = Environment(loader=BaseLoader()).from_string(_html)
     # _data = {} #cms.components.data(_config)
-    _args = {'system':_config['system'],'routes':_config['plugins']}
     
-    _html = ( e.render(**_args))
+   
+    _html = e.render(**_args)
     return _html,200
 
 

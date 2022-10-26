@@ -2,3 +2,5 @@ git+https://github.com/lnyemba/data-transport
 flask
 flask-session
 requests
+numpy 
+pandas

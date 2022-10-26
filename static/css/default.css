@@ -172,6 +172,8 @@ body {
     background-color:#d3d3d3;
     color:#4682b4;
     font-weight:bold;
+    cursor:pointer;
+    padding:15px;
 }
 .button-1:hover {
     color:#FFFFFF;
