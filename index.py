@@ -146,8 +146,19 @@ def cms_page():
    
     _html = e.render(**_args)
     return _html,200
-
-
+@_app.route('/page')
+def _cms_page ():
+    global _config
+    _uri = request.args['uri']
+    _uri = os.sep.join([_config['layout']['root'],_uri])
+    _title = request.args['title'] if 'title' in request.args else ''
+    _args = {'system':_config['system']}
+    if 'plugins' in _config:
+        _args['routes'] = _config['plugins']
+        
+    _html =  cms.components.html(_uri,_title,_args)
+    e = Environment(loader=BaseLoader()).from_string(_html)    
+    return e.render(**_args),200
 #
 # Let us bootup the application
 SYS_ARGS = {}

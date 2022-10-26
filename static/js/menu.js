@@ -57,7 +57,7 @@ menu.apply_link =function(_args){
     //  redirect open new window
     //  dialog      open in a dialog
     //
-    console.log(_args)
+    
     var url = _args['url']
     _args.type = (_args.type == null)? 'redirect' :_args.type
     
