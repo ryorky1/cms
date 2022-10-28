@@ -36,7 +36,10 @@ Vanderbilt University Medical Center
         <script src="{{system.context}}/static/js/search.js"></script>
         <script src="{{system.context}}/static/js/fontawesome/js/all.js"></script>
     </head>
-     
+    <script>
+        sessionStorage.setItem('{{system.id}}','{{system.context|safe}}')
+        
+    </script>
     <body>
        
       <div class="main">
