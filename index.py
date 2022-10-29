@@ -28,7 +28,9 @@ def favicon():
 @_app.route("/")
 def _index ():
     global _config
-    _args = {'system':_config['system'],'routes':_config['plugins']}
+    _args = {'system':_config['system']}
+    if 'plugins' in _config :
+        _args['routes']=_config['plugins']
     try:
         
         _args['layout'] = _config['layout']
