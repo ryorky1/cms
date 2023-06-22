@@ -33,6 +33,9 @@ class components :
         #
         # content of each menu item
         _subItems = [ components.content (os.sep.join([_path,_name]))for _name in _items ]
+        if 'map' in _layout :
+            _items = [_name if _name not in _layout['map'] else _layout['map'][_name] for _name in _items]
+ 
         _object =  dict(zip(_items,_subItems))
         #-- applying overwrites to the menu items 
         for _name in _object :

@@ -189,6 +189,18 @@ if __name__ == '__main__' :
         _config = json.loads((open (_path)).read())
         _root = _config['layout']['root']
         _config['layout']['menu'] = cms.components.menu(_root,_config)
+        if 'map' in _config['layout'] and 'order' in _config['layout'] and 'menu' in _config['layout']['order'] :
+            """
+            We are insuring that the order of the menu items can be manually configured and have proper representation without quircks associated with folder name convention
+            """
+            _map = _config['layout']['map']
+            labels = [_name if _name not in _map else _map[_name] for _name in _config['layout']['order']['menu']]
+            labels = [_name for _name in labels if _name in _config['layout']['menu']]
+            _config['layout']['order']['menu'] = labels
+ 
+        else:
+            _config['layout']['order']['menu'] = list(_config['layout']['menu'].keys())        
+ 
         # _config['data'] = cms.components.data(_config)
         #
         # Let us load the plugins if any are available 
