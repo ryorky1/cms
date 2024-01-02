@@ -6,43 +6,61 @@ import copy
 from jinja2 import Environment, BaseLoader, FileSystemLoader
 import importlib
 import importlib.util
+from cms import disk, cloud
+# import cloud
 
 class components :
+    # @staticmethod
+    # def folders (_path):
+    #     """
+    #     This function reads the content of a folder (no depth, it must be simple)
+    #     """
+    #     _content = os.listdir(_path)        
+    #     return [_name for _name in _content if os.path.isdir(os.sep.join([_path,_name])) if not _name.startswith('_')]
+    # @staticmethod
+    # def content (_folder) :
+    #     if os.path.exists(_folder) :
+    #         # return [{'text':_name.split('.')[0].replace('_', ' ').replace('-',' ').strip(),'uri': os.sep.join([_folder,_name])} for _name in os.listdir(_folder) if not _name.startswith('_') and os.path.isfile( os.sep.join([_folder,_name]))]
+    #         return [{'text':_name.split('.')[0].replace('_', ' ').replace('-',' ').strip(),'uri': os.sep.join([_folder,_name])} for _name in os.listdir(_folder) if not _name.startswith('_') and os.path.isfile( os.sep.join([_folder,_name]))]
+    #     else:
+    #         return []
     @staticmethod
-    def folders (_path):
-        _content = os.listdir(_path)
-        
-        return [_name for _name in _content if os.path.isdir(os.sep.join([_path,_name])) if not _name.startswith('_')]
-    @staticmethod
-    def content (_folder) :
-        if os.path.exists(_folder) :
-            # return [{'text':_name.split('.')[0].replace('_', ' ').replace('-',' ').strip(),'uri': os.sep.join([_folder,_name])} for _name in os.listdir(_folder) if not _name.startswith('_') and os.path.isfile( os.sep.join([_folder,_name]))]
-            return [{'text':_name.split('.')[0].replace('_', ' ').replace('-',' ').strip(),'uri': os.sep.join([_folder,_name])} for _name in os.listdir(_folder) if not _name.startswith('_') and os.path.isfile( os.sep.join([_folder,_name]))]
-        else:
-            return []
-    @staticmethod
-    def menu(_path,_config):
+    def menu(_config):
         """
         This function will read menu and sub-menu items from disk structure,
         The files are loaded will
         """
-        _items = components.folders(_path) 
+        # _items = components.folders(_path) 
         
-        _layout = copy.deepcopy(_config['layout'])
-        _overwrite = _layout['overwrite'] if 'overwrite' in _layout else {}
+        # _layout = copy.deepcopy(_config['layout'])
+        # _overwrite = _layout['overwrite'] if 'overwrite' in _layout else {}
         #
         # content of each menu item
-        _subItems = [ components.content (os.sep.join([_path,_name]))for _name in _items ]
-        if 'map' in _layout :
-            _items = [_name if _name not in _layout['map'] else _layout['map'][_name] for _name in _items]
+        # _subItems = [ components.content (os.sep.join([_path,_name]))for _name in _items ]
+        # if 'map' in _layout :
+        #     _items = [_name if _name not in _layout['map'] else _layout['map'][_name] for _name in _items]
  
-        _object =  dict(zip(_items,_subItems))
+        # _object =  dict(zip(_items,_subItems))
+        
+        if 'source' in _config['system'] and _config['system']['source']['id'] == 'cloud' :
+            _sourceHandler = cloud
+        else:
+            _sourceHandler = disk
+        _object = _sourceHandler.build(_config)
+        # _object = disk.build(_path,_config) if type(_path) == str else cloud.build(_path,_config)        
+        _layout = copy.deepcopy(_config['layout'])
+        _overwrite = _layout['overwrite'] if 'overwrite' in _layout else {}
+        
+        #
+        # @TODO: Find a way to translate rename/replace keys of the _object (menu) here 
+        #
         #-- applying overwrites to the menu items 
         for _name in _object :
             _submenu = _object[_name]
             _index = 0
             for _item in _submenu :
-                text = _item['text']
+                text = _item['text'].strip()
+                
                 if text in _overwrite :
                     if 'uri' in _item and 'url' in 'url' in _overwrite[text] :
                         del _item['uri']
@@ -52,13 +70,21 @@ class components :
                 _submenu[_index] = _item
                 _index += 1
         return _object 
+   
     @staticmethod
-    def html(uri,id,_args={}) :
+    def html(uri,id,_args={},_system={}) :
         """
         This function reads a given uri and returns the appropriate html document, and applies environment context
 
         """
-        _html = (open(uri)).read()       
+
+        if 'source' in _system and _system['source']['id'] == 'cloud':
+            
+            _html = cloud.html(uri,_args)
+            
+        else:
+            _html = disk.html(uri)
+        # _html = (open(uri)).read()       
 
         
         #return ' '.join(['<div id=":id" class=":id">'.replace(':id',id),_html,'</div>'])
@@ -111,10 +137,15 @@ class components :
         return getattr(module,_name) if hasattr(module,_name) else None
     @staticmethod
     def plugins(_config) :
+        """
+        This function looks for plugins in the folder on disk (no cloud support) and attempts to load them
+        """
         PATH= os.sep.join([_config['layout']['root'],'_plugins'])
         _map = {}
         if not os.path.exists(PATH) :
             return _map
+        if 'plugins' not in _config :
+            _config['plugins'] = {}
         _conf = _config['plugins']
         
         for _key in _conf :
@@ -125,6 +156,17 @@ class components :
                 if _pointer :
                     _uri = "/".join(["api",_key,_name])
                     _map[_uri] = _pointer
+        #
+        # Let us load the default plugins
+        
+        if 'source' in _config['system'] and _config['system']['source']['id'] == 'cloud' :
+            _plugins = cloud.plugins()
+        else:
+            _plugins = disk.plugins()
+        #
+        # If there are any plugins found, we should load them and use them
+        if _plugins :
+            _map = dict(_map,**_plugins)
         return _map
     @staticmethod
     def context(_config):

@@ -16,8 +16,8 @@ import base64
 from jinja2 import Environment, BaseLoader
 
 
-
 _app = Flask(__name__)
+
 @_app.route('/favicon.ico')
 def favicon():
     global _config
@@ -28,16 +28,19 @@ def favicon():
 @_app.route("/")
 def _index ():
     global _config
-    _args = {'system':_config['system']}
+    _args = {}
     if 'plugins' in _config :
-        _args['routes']=_config['plugins']
+        _args['routes']=['plugins']
+    _system = copy.deepcopy(_config['system'])
     try:
         
         _args['layout'] = _config['layout']
         # _args = dict(_args,**_config['layout'])
         # _args = copy.copy(_config)
+        
         uri = os.sep.join([_config['layout']['root'], _config['layout']['index']])
-        _html  = cms.components.html(uri,'index',_args)
+        _html  = cms.components.html(uri,'index',_args,_system)
+        
         _args['index'] = _html
         # e = Environment(loader=BaseLoader()).from_string(_html)   
         # e = cms.components.context(_config).from_string(_html)
@@ -49,30 +52,39 @@ def _index ():
         _index_page = "404.html"
         _args['uri'] = request.base_url
         pass
+    if 'source' in _system :
+        del _system['source']
+    _args['system'] = _system
     
     return render_template(_index_page,**_args)
 
-@_app.route('/id/<uid>') 
-def people(uid):
-    """
-    This function will implement hardened links that can directly "do something"
-    """
-    global _config    
-    return "0",200
+# @_app.route('/id/<uid>') 
+# def people(uid):
+#     """
+#     This function will implement hardened links that can directly "do something"
+#     """
+#     global _config    
+#     return "0",200
   
 @_app.route('/dialog')
 def _dialog ():
     global _config 
+    
     _uri = os.sep.join([_config['layout']['root'],request.headers['uri']])
+    # _uri = request.headers['uri']
     _id = request.headers['dom']
     # _data = cms.components.data(_config)
-    _args = {'system':_config['system']}
+    _args = {} #{'system':_config['system']}
     _args['title'] = _id
     if 'plugins' in _config :
         _args['routes'] = _config['plugins']
-    _html =  cms.components.html(_uri,_id,_args)
+    _system = copy.deepcopy(_config['system'])
+    
+    _html =  cms.components.html(_uri,_id,_config,_system)
     e = Environment(loader=BaseLoader()).from_string(_html)     
-
+    if 'source' in _system :
+        del _system['source']
+    _args['system'] = _system
     
     _args['html'] = _html
     _html = ''.join(["<div style='padding:1%'>",str( e.render(**_args)),'</div>'])
@@ -94,13 +106,18 @@ def _getproxy(module,name) :
     global _config
 
     uri =  '/'.join(['api',module,name])
+    _args = dict(request.args,**{})
+    _args['config'] = _config
     if uri not in _config['plugins'] :
         _data = {}
         _code = 404
     else:
         pointer = _config['plugins'][uri]
-        _data = pointer ()
-        _code = 200
+        if _args :
+            _data = pointer (**_args)
+        else:
+            _data = pointer()
+        _code = 200 if _data else 500
     
     
     return _data,_code
@@ -137,14 +154,18 @@ def cms_page():
     global _config
     _uri = os.sep.join([_config['layout']['root'],request.headers['uri']])
     _id = request.headers['dom']
-    _args = {'system':_config['system']}
+    _args = {'layout':_config['layout']}
     if 'plugins' in _config:
         _args['routes'] = _config['plugins']
-        
-    _html =  cms.components.html(_uri,_id,_args)
+    _system = copy.deepcopy(_config['system'])
+    
+    
+    _html =  cms.components.html(_uri,_id,_args,_system)
     e = Environment(loader=BaseLoader()).from_string(_html)
     # _data = {} #cms.components.data(_config)
-    
+    if 'source' in _system :
+        del _system['source']
+    _args['system'] = _system
    
     _html = e.render(**_args)
     return _html,200
@@ -187,32 +208,38 @@ if __name__ == '__main__' :
     _path = SYS_ARGS['config'] if 'config' in SYS_ARGS else 'config.json'
     if os.path.exists(_path):
         _config = json.loads((open (_path)).read())
-        _root = _config['layout']['root']
-        _config['layout']['menu'] = cms.components.menu(_root,_config)
-        if 'map' in _config['layout'] and 'order' in _config['layout'] and 'menu' in _config['layout']['order'] :
-            """
-            We are insuring that the order of the menu items can be manually configured and have proper representation without quircks associated with folder name convention
-            """
-            _map = _config['layout']['map']
-            labels = [_name if _name not in _map else _map[_name] for _name in _config['layout']['order']['menu']]
-            labels = [_name for _name in labels if _name in _config['layout']['menu']]
-            _config['layout']['order']['menu'] = labels
- 
-        else:
-            _config['layout']['order']['menu'] = list(_config['layout']['menu'].keys())        
- 
-        # _config['data'] = cms.components.data(_config)
+        if 'theme' not in _config['system'] :
+            _config['system']['theme'] = 'magazine.css'
         #
+        # root can be either on disk or in the cloud ...
+        #   root: "<path>"  reading from disk
+        #   root: {uid,token,folder}
+        #
+
+        _root = _config['layout']['root']        
+        _menu = cms.components.menu(_config)     
+        if 'order' in _config['layout'] and 'menu' in _config['layout']['order']:
+            _sortedmenu = {}
+            for _name in _config['layout']['order']['menu'] :
+                _sortedmenu[_name] = _menu[_name]
+            _menu = _sortedmenu
+        _config['layout']['menu'] = _menu #cms.components.menu(_config)
+        # if 'data' in _config :
+        #     _config['data'] = cms.components.data(_config['data'])
+        #
+        _map = cms.components.plugins(_config)
+        _config['plugins'] = _map
         # Let us load the plugins if any are available 
-        if 'plugins' in _config :
-            _map = cms.components.plugins(_config)
-            if _map :  
-               _config['plugins'] = _map
+        # if 'plugins' in _config :
+        #     _map = cms.components.plugins(_config)
+        #     if _map :  
+        #        _config['plugins'] = _map
             #
             # register the functions with Jinja2
-            cms.components.context(_config)
+            # cms.components.context(_config)
+        
         _args = _config['system']['app']
         _app.run(**_args)
     else:
         print (__doc__)
-        print ()
+        print ()    

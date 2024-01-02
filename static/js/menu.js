@@ -67,7 +67,6 @@ menu.apply_link =function(_args){
         if (_args.url){
             jx.modal.show(_args.url)
         }else{
-            
             // _html = jx.dom.get.value(_args.text)
             // console.log(_html)
             // jx.modal.show(_html)
