@@ -1,0 +1,90 @@
+.main {
+    margin:10px;
+    padding:4px;
+    display:grid;
+    grid-template-columns: 50% 50% ; gap:4px;
+    grid-template-rows: 48px 48px auto 32px;
+    font-family: helvetica;
+    font-weight: lighter;
+    font-size:18px;
+    line-height: 1.5;
+    justify-items: normal;
+    ;
+}
+.main .header {
+    height:48px;
+    grid-row:1;
+    grid-column: 1  / span 2;
+    
+
+}
+
+.main .header img { width:40px; margin:4px;}
+.main .menu { grid-row:2; grid-column: 1 / span 2; background-color: #f3f3f3; }
+.main .content {
+    grid-row:3;
+    grid-column: 1 ;
+    text-wrap: wrap;
+    height:100%;
+    display:grid;
+    align-content: start;
+   
+   
+    
+}
+.main .content #index {
+    text-align: left;
+    text-wrap: wrap;
+}
+/* .main .content #index{
+    text-align:left;
+    align-content:normal;
+    display:grid;
+    background-color: green;
+} */
+
+.main .pane {
+    border-left:3px dotted gray;
+    grid-column: 2;
+    font-family: sans-serif;
+
+    
+}
+.pane iframe {
+    border:1px solid transparent;
+    width:99%;
+    height:100%;
+    
+}
+.main .footer {grid-row:4; grid-column: 1 / span 2; font-size:13px; font-weight: lighter;}
+
+/**
+* styling tables here
+*/
+p {
+    margin-top:22px;
+}
+table {
+    width:99%;
+    border: 1px solid #CAD5E0;
+}
+table td {padding:4px; margin:4px;}
+table thead {
+    
+    font-weight:bold;
+    background-color:#f3f3f3;
+}
+/* table tbody tr:hover {
+    background-color: #4682B4;
+    color:white ;
+    cursor:pointer;
+} */
+
+#gallery img {
+    justify-content: left;
+    width:70px;
+
+
+}
+
+#gallery table {width:100%;}

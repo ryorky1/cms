@@ -1,0 +1,5 @@
+/**
+* This is the default window and we will have to hide the pane (side)
+*/
+
+body .pane { display:none}
