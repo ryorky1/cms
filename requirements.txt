@@ -1,6 +1,8 @@
-git+https://github.com/lnyemba/data-transport
+data-transport@git+https://github.com/lnyemba/data-transport
 flask
 flask-session
 requests
 numpy 
 pandas
+mistune
+pygments
