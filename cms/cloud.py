@@ -6,8 +6,15 @@ import nextcloud_client as nc
 import copy
 from mistune import markdown
 
+import time
 
 _CLOUDHANDLER = None
+def login(**_args):
+    nx = nc.Client(_args['url'])
+    nx.login(_args['uid'],_args['token'])
+    time.sleep(1)
+    return nx
+
 def _format_root_folder (_root):
     if _root[0] == '/' :
         _root = _root[1:]
@@ -21,22 +28,23 @@ def content(_args):
     :token
     :folder
     """
-    global _CLOUDHANDLER
-    _handler = nc.Client(_args['url'])
-    _handler.login(_args['uid'],_args['token'])
-    _CLOUDHANDLER = _handler
-    _files = _handler.list(_args['folder'],10)
+    # global _CLOUDHANDLER
+    # if not _CLOUDHANDLER :
+    #     _handler = nc.Client(_args['url'])
+    #     _handler.login(_args['uid'],_args['token'])
+    # _CLOUDHANDLER = _handler
+    _handler = login(**_args)
     _root = _args['folder']
     if _root.startswith('/') :
         _root = _root[1:]
     if _root.endswith('/') :
         _root = _root[:-1]
+    _files = _handler.list(_root,30)
     _menu = {} #[_args['folder']] + [_item for _item in _files if _item.file_type == 'dir' and _item.name[0] not in ['.','_']]
     _menu = {} #dict.fromkeys(_menu,[])
     for _item in _files :
         _folder = _item.path.split(_item.name)[0].strip()
         _folder = _folder.replace(_root,'').replace('/','')
-        
         if _item.name[0] in ['.','_'] or _folder == '':
             continue ;
         
@@ -60,6 +68,7 @@ def content(_args):
     # clean up the content ...
     _keys = [_name for _name in _menu.keys() if _name.startswith('_')]
     [_menu.pop(_name) for _name in _keys]
+    _handler.logout()
     return _menu
 
 
@@ -72,10 +81,12 @@ def build(_config):
     _args = copy.deepcopy(_config['system']['source']['auth'])
     _args['folder'] = _config['layout']['root']
     # update(_config)
-    return content(_args)
+    _menu =  content(_args)
+    return _menu
 def html (uri,_config) :
-    global _CLOUDHANDLER
-    _handler = _CLOUDHANDLER
+    # global _CLOUDHANDLER
+    # _handler = _CLOUDHANDLER
+    _handler = login(**_config['system']['source']['auth'])
     _root = _format_root_folder(_config['layout']['root'])
     uri = _format_root_folder (uri)
     
@@ -85,7 +96,10 @@ def html (uri,_config) :
     # _link = '/'.join(['api/cloud/download?doc='+_prefix,'_images'])
     _html = _handler.get_file_contents(uri).decode('utf-8').replace('.attachments.',_link)
     # print ([uri,uri[-2:] ,uri[-2:] in ['md','MD','markdown']])
-    return markdown(_html) if uri[-2:] in ['md','MD','Md','mD'] else _html.replace(_root,('{{context}}api/cloud/download?doc='+_root))
+    _handler.logout()
+    # if uri.endswith('.md'):
+    # _html = _html.replace(_root,('{{context}}api/cloud/download?doc='+_root))
+    return markdown(_html) if uri[-2:] in ['md','MD','Md','mD'] else _html
 # def update (_config):
 #     """
 #     This function updates the configuration provided by loading default plugins
@@ -95,13 +109,14 @@ def html (uri,_config) :
 #     _config['plugins'] = plugins ()
 #     return _config
 def download(**_args):
-    _handler = _CLOUDHANDLER
+    _auth = _args['config']['system']['source']['auth']
+    _handler = login(**_auth)
 
     if _args['doc'][-2:] in ['md','ht']:
         _stream = html(_args['doc'],_args['config'])
     else:
         _stream = _handler.get_file_contents(_args['doc'])
-    
+    _handler.logout()
     return _stream
     pass
 

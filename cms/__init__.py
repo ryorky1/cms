@@ -79,8 +79,7 @@ class components :
         """
 
         if 'source' in _system and _system['source']['id'] == 'cloud':
-            
-            _html = cloud.html(uri,_args)
+            _html = cloud.html(uri,dict(_args,**{'system':_system}))
             
         else:
             _html = disk.html(uri)
@@ -105,7 +104,7 @@ class components :
         _store  = _args['store']
         reader  = transport.factory.instance(**_store)
         _queries= copy.deepcopy(_store['query'])
-        _data   = reader.read(**_query)
+        _data   = reader.read(**_queries)
         return _data
     @staticmethod
     def csv(uri) :
@@ -130,6 +129,7 @@ class components :
                 return None
         #-- We have a file ...  
         _name = _args['name']
+        
         spec = importlib.util.spec_from_file_location(_name, _path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
@@ -142,29 +142,32 @@ class components :
         """
         PATH= os.sep.join([_config['layout']['root'],'_plugins'])
         _map = {}
-        if not os.path.exists(PATH) :
-            return _map
+        # if not os.path.exists(PATH) :
+        #     return _map
         if 'plugins' not in _config :
             _config['plugins'] = {}
-        _conf = _config['plugins']
+        _conf = _config['plugins'] 
         
         for _key in _conf :
             _path = os.sep.join([PATH,_key+".py"])
-            
+            if not os.sep.path.exists(_path):
+                continue
             for _name in _conf[_key] :
                 _pointer = components.load_plugin(path=_path,name=_name)
                 if _pointer :
                     _uri = "/".join(["api",_key,_name])
                     _map[_uri] = _pointer
         #
-        # Let us load the default plugins
-        
+        # We are adding some source specific plugins to the user-defined plugins
+        # This is intended to have out-of the box plugins...
+        #
         if 'source' in _config['system'] and _config['system']['source']['id'] == 'cloud' :
             _plugins = cloud.plugins()
         else:
             _plugins = disk.plugins()
         #
         # If there are any plugins found, we should load them and use them
+        
         if _plugins :
             _map = dict(_map,**_plugins)
         return _map
@@ -182,3 +185,12 @@ class components :
         env = Environment(loader=BaseLoader())
         # env.globals['routes'] = _config['plugins']
         return env
+    @staticmethod
+    def get_system(_config,skip_keys=[]):
+        _system = copy.deepcopy(_config['system'])
+        if skip_keys :
+            for key in skip_keys :
+                if key in _system :
+                    del _system
+        return _system
+

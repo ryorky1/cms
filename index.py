@@ -31,7 +31,7 @@ def _index ():
     _args = {}
     if 'plugins' in _config :
         _args['routes']=['plugins']
-    _system = copy.deepcopy(_config['system'])
+    _system = cms.components.get_system(_config) #copy.deepcopy(_config['system'])
     try:
         
         _args['layout'] = _config['layout']
@@ -157,14 +157,13 @@ def cms_page():
     _args = {'layout':_config['layout']}
     if 'plugins' in _config:
         _args['routes'] = _config['plugins']
-    _system = copy.deepcopy(_config['system'])
     
     
+    _system = cms.components.get_system(_config)
     _html =  cms.components.html(_uri,_id,_args,_system)
     e = Environment(loader=BaseLoader()).from_string(_html)
     # _data = {} #cms.components.data(_config)
-    if 'source' in _system :
-        del _system['source']
+    _system = cms.components.get_system(_config)
     _args['system'] = _system
    
     _html = e.render(**_args)
@@ -175,13 +174,16 @@ def _cms_page ():
     _uri = request.args['uri']
     _uri = os.sep.join([_config['layout']['root'],_uri])
     _title = request.args['title'] if 'title' in request.args else ''
-    _args = {'system':_config['system']}
+    _args = {'system':cms.components.get_system(_config) }
     if 'plugins' in _config:
         _args['routes'] = _config['plugins']
         
     _html =  cms.components.html(_uri,_title,_args)
     e = Environment(loader=BaseLoader()).from_string(_html)    
     return e.render(**_args),200
+@_app.route('/reload',methods=['POST'])
+def reload():
+    pass
 #
 # Let us bootup the application
 SYS_ARGS = {}
@@ -217,12 +219,14 @@ if __name__ == '__main__' :
         #
 
         _root = _config['layout']['root']        
-        _menu = cms.components.menu(_config)     
+        _menu = cms.components.menu(_config)  
         if 'order' in _config['layout'] and 'menu' in _config['layout']['order']:
             _sortedmenu = {}
             for _name in _config['layout']['order']['menu'] :
-                _sortedmenu[_name] = _menu[_name]
-            _menu = _sortedmenu
+                if _name in _menu :
+                    _sortedmenu[_name] = _menu[_name]
+            
+            _menu = _sortedmenu if _sortedmenu else _menu
         _config['layout']['menu'] = _menu #cms.components.menu(_config)
         # if 'data' in _config :
         #     _config['data'] = cms.components.data(_config['data'])
