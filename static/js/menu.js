@@ -72,7 +72,7 @@ menu.apply_link =function(_args){
             // jx.modal.show(_html)
             var http = HttpClient.instance()
             http.setHeader('uri',_args.uri)
-            http.setHeader('dom','dialog')
+            http.setHeader('dom',(_args.title)?_args.title:'dialog')
             // http.setHeader('dom',_args.text)
             http.get('/dialog',function(x){
                 

@@ -20,7 +20,8 @@ def _format_root_folder (_root):
         _root = _root[1:]
     if _root[-1] == '/' :
         _root = _root[:-1]
-    return _root
+    
+    return _root.replace('//','/')
 def content(_args):
     """
     :url
@@ -92,13 +93,19 @@ def html (uri,_config) :
     
     
     _prefix = '/'.join (uri.split('/')[:-1])
+    
     _link = '/'.join(['{{context}}api/cloud/download?doc='+_prefix,'.attachments.'])
+    print ([_link])
     # _link = '/'.join(['api/cloud/download?doc='+_prefix,'_images'])
-    _html = _handler.get_file_contents(uri).decode('utf-8').replace('.attachments.',_link)
+    _html = _handler.get_file_contents(uri).decode('utf-8')#.replace('.attachments.', copy.deepcopy(_link))
     # print ([uri,uri[-2:] ,uri[-2:] in ['md','MD','markdown']])
     _handler.logout()
     # if uri.endswith('.md'):
-    # _html = _html.replace(_root,('{{context}}api/cloud/download?doc='+_root))
+    
+    _html = _html.replace(_root,('{{context}}api/cloud/download?doc='+_root)).replace('.attachments.', copy.deepcopy(_link))
+    if '.attachments.' in _html :
+        print (_html)
+    # _html = _html.replace('<br />','')
     return markdown(_html) if uri[-2:] in ['md','MD','Md','mD'] else _html
 # def update (_config):
 #     """

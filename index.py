@@ -81,6 +81,7 @@ def _dialog ():
     _system = copy.deepcopy(_config['system'])
     
     _html =  cms.components.html(_uri,_id,_config,_system)
+
     e = Environment(loader=BaseLoader()).from_string(_html)     
     if 'source' in _system :
         del _system['source']
