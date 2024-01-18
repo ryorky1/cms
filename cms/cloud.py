@@ -7,9 +7,13 @@ import copy
 from mistune import markdown
 
 import time
+import json
 
 _CLOUDHANDLER = None
-def login(**_args):
+def login(path): #(**_args):
+    f = open(path)
+    _args = json.loads(f.read())
+    f.close()
     nx = nc.Client(_args['url'])
     nx.login(_args['uid'],_args['token'])
     time.sleep(1)
@@ -34,7 +38,7 @@ def content(_args):
     #     _handler = nc.Client(_args['url'])
     #     _handler.login(_args['uid'],_args['token'])
     # _CLOUDHANDLER = _handler
-    _handler = login(**_args)
+    _handler = login(_args['auth'])
     _root = _args['folder']
     if _root.startswith('/') :
         _root = _root[1:]
@@ -79,7 +83,7 @@ def build(_config):
     :_args  authentication arguments for nextcloud
     :_config    configuration for the cms
     """
-    _args = copy.deepcopy(_config['system']['source']['auth'])
+    _args = {'auth':copy.deepcopy(_config['system']['source']['auth'])}
     _args['folder'] = _config['layout']['root']
     # update(_config)
     _menu =  content(_args)
@@ -87,7 +91,7 @@ def build(_config):
 def html (uri,_config) :
     # global _CLOUDHANDLER
     # _handler = _CLOUDHANDLER
-    _handler = login(**_config['system']['source']['auth'])
+    _handler = login(_config['system']['source']['auth'])
     _root = _format_root_folder(_config['layout']['root'])
     uri = _format_root_folder (uri)
     
@@ -117,7 +121,8 @@ def html (uri,_config) :
 #     return _config
 def download(**_args):
     _auth = _args['config']['system']['source']['auth']
-    _handler = login(**_auth)
+    #
+    _handler = login(_auth)
 
     if _args['doc'][-2:] in ['md','ht']:
         _stream = html(_args['doc'],_args['config'])
