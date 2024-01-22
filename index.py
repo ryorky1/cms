@@ -108,7 +108,8 @@ def _getproxy(module,name) :
 
     uri =  '/'.join(['api',module,name])
     _args = dict(request.args,**{})
-    _args['config'] = _config
+    _args['config'] = copy.deepcopy(_config)
+    
     if uri not in _config['plugins'] :
         _data = {}
         _code = 404
@@ -133,7 +134,7 @@ def _post (module,name):
     _info = ""
     if uri in _config['plugins']  and _args:
         _pointer = _config['plugins'][uri]
-        _info = _pointer(_args)
+        _info = _pointer(**_args)
         if _info:
             code = 200
         else:
@@ -142,6 +143,7 @@ def _post (module,name):
         # _info  =io.BytesIO(_info)
         
         # _info = base64.encodebytes(_info.getvalue()).decode('ascii')
+    
     return _info,code
 @_app.route('/version')
 def _version ():
@@ -161,6 +163,7 @@ def cms_page():
     
     
     _system = cms.components.get_system(_config)
+    print ([_uri])
     _html =  cms.components.html(_uri,_id,_args,_system)
     e = Environment(loader=BaseLoader()).from_string(_html)
     # _data = {} #cms.components.data(_config)

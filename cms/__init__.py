@@ -149,8 +149,9 @@ class components :
         _conf = _config['plugins'] 
         
         for _key in _conf :
+            
             _path = os.sep.join([PATH,_key+".py"])
-            if not os.sep.path.exists(_path):
+            if not os.path.exists(_path):
                 continue
             for _name in _conf[_key] :
                 _pointer = components.load_plugin(path=_path,name=_name)
