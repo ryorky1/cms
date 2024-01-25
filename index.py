@@ -142,11 +142,13 @@ def _getproxy(module,name) :
 def _post (module,name):
     # global _config
     global _route
-    _config = _route.get().config()
-    _plugins = _route.plugins()
+    _handler = _route.get()
+    _config = _handler.config()
+    _plugins = _handler.plugins()
     uri =  '/'.join(['api',module,name])
     
     _args = request.json
+    _args['config'] = _config
     code = 404
     
     _info = ""
