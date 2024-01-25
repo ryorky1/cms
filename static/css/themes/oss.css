@@ -18,6 +18,8 @@
 
     
 }
+.main .header .icon {width:40px; height:40px;}
+.main .header .icon img {width:40px; height:40px;}
 .main .header .title { font-size:32px; text-transform: uppercase; font-weight:bold}
 .main .header .subtitle {font-style:italic;font-size:14px; color:gray; text-transform: capitalize;}
 
@@ -37,9 +39,7 @@
  blockquote {
     border-left:8px solid #D3D3D3; padding:4px;
     }
-    .main .content table {border-spacing: 2;}    
-.main .content table .fa-check {color:green; font-size:20px;}
-.main .content table .fa-times {color:RED; font-size:20px;}
+.main .content table {border-spacing: 2;}    
 .main .content table .active {font-size:14px}
 .main .content .banner {
     height:300px; margin:4px;
