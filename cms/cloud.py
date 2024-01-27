@@ -103,7 +103,6 @@ def html (uri,_config) :
     
     
     # _link = '/'.join(['api/cloud/download?doc='+_prefix,'_images'])
-    print (uri)
     _html = _handler.get_file_contents(uri).decode('utf-8')#.replace('.attachments.', copy.deepcopy(_link))
     # print ([uri,uri[-2:] ,uri[-2:] in ['md','MD','markdown']])
     _handler.logout()

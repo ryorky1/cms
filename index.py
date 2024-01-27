@@ -179,8 +179,13 @@ def cms_page():
     _handler = _route.get()
     _config = _handler.config()
 
-    _uri = os.sep.join([_config['layout']['root'],request.headers['uri']])
-    _id = request.headers['dom']
+    # _uri = os.sep.join([_config['layout']['root'],request.headers['uri']])
+    _uri = request.headers['uri']
+    if 'dom' not in request.headers :
+        _id = _uri.split('/')[-1].split('.')[0]
+    else:
+        _id = request.headers['dom']
+    print ([_id,_uri])
     _args = {'layout':_config['layout']}
     if 'plugins' in _config:
         _args['routes'] = _config['plugins']
@@ -202,7 +207,7 @@ def _cms_page ():
     _handler = _route.get()
     _config = _handler.config()
     _uri = request.args['uri']
-    _uri = os.sep.join([_config['layout']['root'],_uri])
+    # _uri = os.sep.join([_config['layout']['root'],_uri])
     _title = request.args['title'] if 'title' in request.args else ''
     _args = {'system':_handler.system()} #cms.components.get_system(_config) }
     # if 'plugins' in _config:
@@ -217,7 +222,11 @@ def set(id):
     global _route
     _handler = _route.set(id)
     return redirect('/')
-    
+@_app.route('/<id>')    
+def _open(id):
+    global _route
+    _route.set(id)
+    return _index()
 #
 # Let us bootup the application
 SYS_ARGS = {}

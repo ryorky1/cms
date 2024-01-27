@@ -42,6 +42,67 @@ Vanderbilt University Medical Center
     </head>
     <script>
         sessionStorage.setItem('{{system.id}}','{{system.context|safe}}')
+        var _layout = {{layout|tojson}}
+        //
+        // Rendering here requires an observer design pattern because calls are asynchronous
+        //
+        /**
+         * @id  _domURI of the pane where the output is to be written
+         * @uri _fileURI of the file 
+         */
+        var CMSObserver = function(_domId,_fileURI){
+            this._domId     = _domId
+            this._fileURI   = _fileURI
+            this.apply      = function (_caller){
+                    var http = HttpClient.instance()
+                    http.setHeader('uri',_fileURI)
+                    var uri = '{{context}}/page'
+                    try{
+                        http.post(uri,function(x){
+                            console.log(jx.dom.exists(_domId))
+                            if (x.status == 200){
+                                // jx.dom.set.value(_domId,x.responseText)
+                                var _domElement = jx.dom.get.instance('div')
+                                _domElement.innerHTML = x.responseText
+                                jx.dom.append(_domId, _domElement)
+
+                                
+                            }
+                            
+                            _caller.notify()
+                        })
+
+                    }catch(error){
+                        _caller.notify()
+                    }
+            }
+            
+        }
+        var finalize = function(_id){
+            this.apply = function(_caller){
+                menu.runScript('#'+_id)
+            }
+        }
+        if (_layout.on != null ){
+            //
+            // load and error are required
+            $(document).ready(function(){
+                jx.utils.keys(_layout.on.load).forEach(function(_id){
+                
+                    var observers = 
+                    jx.utils.patterns.visitor(_layout.on.load[_id], function(_uri){
+                        return new CMSObserver(_id,_uri)
+                    })
+                    observers.push(new finalize(_id))
+                    //
+                    // At this point we can execute the observer design pattern
+                    //
+                    jx.utils.patterns.observer(observers,'apply')
+
+                })
+            })
+        }
+        
         
     </script>
     <body>
@@ -51,7 +112,7 @@ Vanderbilt University Medical Center
             {%include "header.html" %}
         </div>
        
-        <div class="menu">
+        <div id="menu" class="menu">
             {%include "menu.html" %}
         </div>
         <div class="content">
@@ -59,11 +120,11 @@ Vanderbilt University Medical Center
            {%include "content.html" %}
 
         </div>
-        <div class="pane">
+        <div id="pane" class="pane">
             {%include "pane.html" %}
         </div>
        
-        <div class="footer">
+        <div id="footer" class="footer">
             {%include "footer.html" %}
         </div>
       </div>

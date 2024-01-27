@@ -10,7 +10,7 @@
 }
 .main .header { height:64px;
    display:grid;
-   grid-template-columns: 40px auto;
+   grid-template-columns: 50px auto;
     border-bottom: 2px double #CAD5E0;
     padding:4px;
     gap:4px;
@@ -18,19 +18,19 @@
 
     
 }
-.main .header .icon {width:40px; height:40px;}
-.main .header .icon img {width:40px; height:40px;}
+.main .header .icon {width:50px; height:50px;}
+.main .header .icon img {width:48px; height:48px;}
 .main .header .title { font-size:32px; text-transform: uppercase; font-weight:bold}
 .main .header .subtitle {font-style:italic;font-size:14px; color:gray; text-transform: capitalize;}
 
-.main .header img {height:48px; margin:4px;}
+
 .main .menu {border:0; background-color: #f3f3f3;}
-.main .content img{
+/* .main .content img{
     width:99%;
     border:1px solid #CAD5E0;
     padding:8px;
     background-color:#f3f3f3;
-}
+} */
 
 /* .main .content table thead tr:first-child {
     padding:4px;

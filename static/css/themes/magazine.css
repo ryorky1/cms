@@ -4,7 +4,7 @@
     display:grid;
     grid-template-columns: 50% 50% ; gap:4px;
     grid-template-rows: 48px 48px auto 32px;
-    font-family: helvetica;
+    font-family: sans-serif;
     font-weight: lighter;
     font-size:18px;
     line-height: 1.5;
@@ -12,15 +12,23 @@
     ;
 }
 .main .header {
-    height:48px;
+    
     grid-row:1;
     grid-column: 1  / span 2;
+    display:grid;
+    grid-template-columns: 50px auto; gap:4px;
+    line-height: 1;
     
 
 }
-
-.main .header img { width:40px; margin:4px;}
-.main .menu { grid-row:2; grid-column: 1 / span 2; background-color: #f3f3f3; }
+.main .header .title {font-size:28px; text-transform: capitalize; font-weight:bold}
+.main .header .subtitle {font-size:14px}
+.main .header img { width:44px; height:44px;}
+.main .menu { grid-row:2; grid-column: 1 / span 2; background-color: #f3f3f3; 
+    display:grid; grid-template-columns: 75px repeat(3,250px) ; gap:4px; 
+    align-items: left;
+    padding:4px;
+}
 .main .content {
     grid-row:3;
     grid-column: 1 ;
@@ -47,6 +55,7 @@
     border-left:3px dotted gray;
     grid-column: 2;
     font-family: sans-serif;
+    padding-left: 10px;
 
     
 }
@@ -58,6 +67,8 @@
 }
 .main .footer {grid-row:4; grid-column: 1 / span 2; font-size:13px; font-weight: lighter;}
 
+blockquote { border-left:8px solid GRAY;margin-right:8px}
+blockquote .code {padding:10px; font-size:16px; font-family: courier; background-color:black; color: #d3d3d3}
 /**
 * styling tables here
 */

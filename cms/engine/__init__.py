@@ -69,7 +69,7 @@ class Loader :
                         del _item['uri']
                     _item = dict(_item,**_overwrite[text])
                 
-                if 'uri' in _item and _item['type'] != 'open':
+                if 'uri' in _item and 'type' in _item and _item['type'] != 'open':
                     _item['uri'] = _item['uri'].replace(_layout['root'],'')
 
                 _submenu[_index] = _item
@@ -91,7 +91,7 @@ class Loader :
                 _item = _system['routes'][_text]
                 if 'menu' not in _item :
                     continue
-                uri = f'{_context}/set/{_text}'
+                uri = f'{_context}/{_text}'
                 # _items.append ({"text":_text,'uri':uri,'type':'open'})
                 _label = _item['menu']
                 if _label not in _menu :
@@ -136,7 +136,7 @@ class Loader :
         if not os.path.exists(PATH) and self._location and os.path.exists(self._location) :
             #
             # overriding the location of plugins ...
-            PATH = self._location
+            PATH = os.sep.join([self._location, _config['layout']['root'],'_plugins'])
             
         _map = {}
         # if not os.path.exists(PATH) :
@@ -149,6 +149,7 @@ class Loader :
             
             _path = os.sep.join([PATH,_key+".py"])
             if not os.path.exists(_path):
+                print ([' ?? ',_path])
                 continue
             for _name in _conf[_key] :
                 _pointer = self._load_plugin(path=_path,name=_name)
@@ -213,6 +214,8 @@ class Getter (Loader):
             _icon = os.sep.join([_root,_icon])
             _system['icon'] = _icon
         self._config['system'] = _system
+        if self._caller :
+            _system['caller'] = {'icon': self._caller.system()['icon']}
     def html(self,uri,id,_args={},_system={}) :
         """
         This function reads a given uri and returns the appropriate html document, and applies environment context
@@ -300,7 +303,7 @@ class Router :
             for _name in _system :
                 _path = _system[_name]['path']
                 self._apps[_name] = Getter(path=_path,caller=_app,location=_path)
-                # self._apps[_name].load()
+                print ([_name, self._apps[_name].plugins().keys()])
         self._apps['main'] = _app
     def set(self,_id):
         self._id = _id

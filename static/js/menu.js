@@ -77,6 +77,8 @@ menu.apply_link =function(_args){
             http.get('/dialog',function(x){
                 
                 jx.modal.show({html:x.responseText,id:'dialog'})
+                console.log([$('.jxmodal')])
+                menu.runScript ('.jxmodal')
             })
         }
     }else{
@@ -84,3 +86,22 @@ menu.apply_link =function(_args){
     }
 
 }
+
+var _delegate = {scripts:{}}
+menu.runScript  = function(_id){
+    var scripts = $(_id+' script')
+    
+    jx.utils.patterns.visitor(scripts,function(_item){
+       if(_item.text.trim().length > 0){
+          var _code = eval(_item.text)
+          var id = _id
+          if (_item.parentNode != null){
+            var id = _item.parentNode.id == null?_item.parentNode.className : _item.parentNode.id
+          }
+          id = (id != null)?id : _id 
+          
+        //   _delegate.scripts[id] = _code
+       }
+    })    
+}
+
