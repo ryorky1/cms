@@ -29,8 +29,14 @@ def build (_config): #(_path,_content):
     _path = _config['layout']['root']
     _items = folders(_path)
     _subItems = [ content (os.sep.join([_path,_name]))for _name in _items ]
-    # return dict(zip())
-    return dict.fromkeys(_items,_subItems)
+    _r = {}
+    for _name in _items :
+        _index = _items.index(_name)
+        if _name not in _r :
+            _r[_name] = []
+        _r[_name] += _subItems[_index]
+    return _r
+    # return dict.fromkeys(_items,_subItems)
 
 def html(uri) :
     _html = (open(uri)).read()    

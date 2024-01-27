@@ -149,7 +149,6 @@ class Loader :
             
             _path = os.sep.join([PATH,_key+".py"])
             if not os.path.exists(_path):
-                print ([' ?? ',_path])
                 continue
             for _name in _conf[_key] :
                 _pointer = self._load_plugin(path=_path,name=_name)
@@ -303,7 +302,7 @@ class Router :
             for _name in _system :
                 _path = _system[_name]['path']
                 self._apps[_name] = Getter(path=_path,caller=_app,location=_path)
-                print ([_name, self._apps[_name].plugins().keys()])
+                # print ([_name, self._apps[_name].plugins().keys()])
         self._apps['main'] = _app
     def set(self,_id):
         self._id = _id
