@@ -211,8 +211,8 @@ class Getter (Loader):
             
         else:
             _root = self._config['layout']['root']
-            _icon = os.sep.join([_root,_icon])
-            _system['icon'] = _icon
+            _icon = os.sep.join([_root,_logo])
+            _system['icon'] = _logo
         self._config['system'] = _system
         if self._caller :
             _system['caller'] = {'icon': self._caller.system()['icon']}
