@@ -12,4 +12,4 @@ padding-left:2%; padding-right:2%;
 .main .content{
     align-self:center;
 }
-.main .pane {border-left:1px solid #CAD5E0; height:100%;}
+.main .pane {border-left:1px solid #CAD5E0; height:100%; padding:8px;}
