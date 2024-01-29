@@ -23,8 +23,10 @@ _app = Flask(__name__)
 def favicon():
     global _route
     _system = _route.get ().system()
+    _handler = _route.get()
+
     _logo =_system['icon'] if 'icon' in _system else 'static/img/logo.svg'
-    return _logo
+    return _handler.get(_logo)
     # # _root = _route.get().config()['layout']['root']
     # # print ([_system])
     # # if 'source' in _system and 'id' in _system['source'] and (_system['source']['id'] == 'cloud'):
@@ -167,8 +169,27 @@ def _post (module,name):
     return _info,code
 @_app.route('/version')
 def _version ():
+    global _route
+    _handler = _route.get()
     global _config 
-    return _config['system']['version']
+    return _handler.system()['version']
+@_app.route('/reload',methods=['POST'])
+def reload():
+    global _route
+
+    _handler = _route.get_main()
+    _system = _handler.system()
+    _key = request.headers['key'] if 'key' in request.headers else None
+    if not 'source' in _system :
+        _systemKey = None
+    elif 'key' in _system['source'] and _system['source']['key']:
+        _systemKey = _system['source']['key']
+    print ([_key,_systemKey,_systemKey == _key])
+    if _key and _systemKey and _systemKey == _key :
+        _handler.load()
+        return "",200
+        pass
+    return "",403
 @_app.route('/page',methods=['POST'])
 def cms_page():
     """
@@ -185,7 +206,6 @@ def cms_page():
         _id = _uri.split('/')[-1].split('.')[0]
     else:
         _id = request.headers['dom']
-    print ([_id,_uri])
     _args = {'layout':_config['layout']}
     if 'plugins' in _config:
         _args['routes'] = _config['plugins']

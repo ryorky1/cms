@@ -13,17 +13,10 @@ from cms import disk, cloud
 
 class Loader :
     def __init__(self,**_args):
-        f = open (_args['path']) 
-        self._config = json.loads(f.read())
-        #
-        # 
+        self._path = _args['path']
+        self._original_location = None if 'location' not in _args else _args['location']
         self._location = None
-        self._caller = None
-        if 'caller' in _args and _args['caller'] :
-            self._caller = _args['caller']
-            self._location = _args['location'].split(os.sep) # needed for plugin loading
-            self._location = os.sep.join(self._location[:-1])
-        self._config['system']['portal'] = self._caller != None
+        self._caller = None if 'caller'  not in _args else _args['caller']
         self._menu = {}
         self._plugins={}
         self.load()
@@ -32,9 +25,33 @@ class Loader :
         """
         This function will load menu (overwrite) and plugins
         """
+        self.init_config()
         self.init_menu()
         self.init_plugins()
+    def init_config(self):
+        """
+        Initialize & loading configuration from disk
+        """
+        f = open (self._path) 
+        self._config = json.loads(f.read())
         
+        if self._caller :
+            self._location = self._original_location.split(os.sep) # needed for plugin loading
+            self._location = os.sep.join(self._location[:-1])
+        self._config['system']['portal'] = self._caller != None
+
+        #
+        # let's see if we have a location for a  key in the configuration
+        #
+        _system = self._config['system']
+        if 'source' in _system and 'key' in _system['source'] :
+            _path = _system['source']['key']
+            if os.path.exists(_path):
+                f = open(_path)
+                _system['source']['key'] = f.read()
+                f.close()
+                self._system = _system
+                self._config['system'] = _system
     def init_menu(self):
         """
         This function will read menu and sub-menu items from disk structure,
@@ -45,8 +62,10 @@ class Loader :
         if 'source' in _config['system'] and _config['system']['source']['id'] == 'cloud' :
             _sourceHandler = cloud
         else:
+            print ([' **** '])
             _sourceHandler = disk
         _object = _sourceHandler.build(_config)
+        
         #
         # After building the site's menu, let us add the one from 3rd party apps
         #
@@ -202,16 +221,20 @@ class Loader :
 class Getter (Loader):
     def __init__(self,**_args):
         super().__init__(**_args)
+    def load(self):
+        super().load()
         _system = self.system()
         _logo = _system['logo']
         if 'source' in _system and 'id' in _system['source'] and (_system['source']['id'] == 'cloud'):
+            
             _icon = f'/api/cloud/download?doc=/{_logo}'
-            _system['icon'] = _icon
+            _system['icon'] = _icon 
             
         else:
             _root = self._config['layout']['root']
             _icon = os.sep.join([_root,_logo])
             _system['icon'] = _logo
+
         self._config['system'] = _system
         if self._caller :
             _system['caller'] = {'icon': self._caller.system()['icon']}
@@ -302,10 +325,12 @@ class Router :
             for _name in _system :
                 _path = _system[_name]['path']
                 self._apps[_name] = Getter(path=_path,caller=_app,location=_path)
-                # print ([_name, self._apps[_name].plugins().keys()])
+                print ([_name, self._apps[_name].plugins().keys()])
         self._apps['main'] = _app
     def set(self,_id):
         self._id = _id
     def get(self):
         
         return self._apps['main'] if self._id not in self._apps else self._apps[self._id]
+    def get_main(self):
+        return self._apps['main']
