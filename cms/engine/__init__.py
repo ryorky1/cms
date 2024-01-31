@@ -255,6 +255,7 @@ class Getter (Loader):
         #return ' '.join(['<div id=":id" class=":id">'.replace(':id',id),_html,'</div>'])
         _html   = ' '.join(['<div id=":id" class=":id">'.replace(':id',id),_html,'</div>'])
         appContext = Environment(loader=BaseLoader()).from_string(_html)
+        _args['system'] = _system
         #
         # If the rendering of the HTML happens here we should plugin custom functions (at the very least)
         #

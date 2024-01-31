@@ -50,6 +50,7 @@ def _index ():
     # if 'plugins' in _config :
     #     _args['routes']=_config['plugins']
     # _system = cms.components.get_system(_config) #copy.deepcopy(_config['system'])
+    _html = ""
     try:
         
         uri = os.sep.join([_config['layout']['root'], _config['layout']['index']])
