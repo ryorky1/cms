@@ -1,12 +1,13 @@
 .main {
-    gap:4px;
+    
     font-size: 18px;
     font-weight:lighter;
     font-family:sans-serif;
     margin:1%;
     margin-left:10%;
     margin-right:10%;
-    gap:4px;
+    
+    display:block;
 }
 .main .header { height:64px;
    display:grid;
@@ -26,6 +27,9 @@
 
 .main .menu {border:0; background-color: #f3f3f3; height:64px; padding:0px;
     display:grid; grid-template:64px repeat(6,1fr); gap:4px; background-color: #ffffff;
+}
+.main .menu .icon div,.button {
+    padding:10px;
 }
 /* .main .content img{
     width:99%;

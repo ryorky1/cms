@@ -97,6 +97,7 @@ Vanderbilt University Medical Center
                     //
                     // At this point we can execute the observer design pattern
                     //
+                    console.log(observers)
                     jx.utils.patterns.observer(observers,'apply')
 
                 })
@@ -108,14 +109,14 @@ Vanderbilt University Medical Center
     <body>
        
       <div class="main">
-        <div class="header" onclick="window.location.href='{{system.context}}/'" style="cursor:pointer">
+        <div id="header" class="header" onclick="window.location.href='{{system.context}}/'" style="cursor:pointer">
             {%include "header.html" %}
         </div>
        
         <div id="menu" class="menu">
             {%include "menu.html" %}
         </div>
-        <div class="content">
+        <div id="content" class="content">
             
            {%include "content.html" %}
 
