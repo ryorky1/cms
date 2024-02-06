@@ -34,7 +34,8 @@ class Loader :
         """
         f = open (self._path) 
         self._config = json.loads(f.read())
-        
+
+       
         if self._caller :
             self._location = self._original_location.split(os.sep) # needed for plugin loading
             self._location = os.sep.join(self._location[:-1])
@@ -62,7 +63,6 @@ class Loader :
         if 'source' in _config['system'] and _config['system']['source']['id'] == 'cloud' :
             _sourceHandler = cloud
         else:
-            print ([' **** '])
             _sourceHandler = disk
         _object = _sourceHandler.build(_config)
         
@@ -152,6 +152,10 @@ class Loader :
         """
         _config = self._config
         PATH= os.sep.join([_config['layout']['root'],'_plugins'])
+        if not os.path.exists(PATH) :
+            #
+            # we need to determin if there's an existing 
+            PATH = os.sep.join(self._path.split(os.sep)[:-1]+ [PATH] )
         if not os.path.exists(PATH) and self._location and os.path.exists(self._location) :
             #
             # overriding the location of plugins ...
