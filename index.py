@@ -125,18 +125,19 @@ def _getproxy(module,name) :
 
 
     uri =  '/'.join(['api',module,name])
-    _args = dict(request.args,**{})
-    _args['config'] = _handler.config()
+    # _args = dict(request.args,**{})
+    # _args['config'] = _handler.config()
     _plugins = _handler.plugins()
     if uri not in _plugins :
         _data = {}
         _code = 404
     else:
         pointer = _plugins[uri]
-        if _args :
-            _data = pointer (**_args)
-        else:
-            _data = pointer()
+        # if _args :
+        #     _data = pointer (**_args)
+        # else:
+        #     _data = pointer()
+        _data = pointer(request=request,config=_handler.config())
         _code = 200 if _data else 500
     
     
@@ -150,18 +151,20 @@ def _post (module,name):
     _plugins = _handler.plugins()
     uri =  '/'.join(['api',module,name])
     
-    _args = request.json
-    _args['config'] = _config
+    # _args = request.json
+    # _args['config'] = _config
     code = 404
     
     _info = ""
-    if uri in _plugins and _args:
+    if uri in _plugins :
         _pointer = _plugins[uri]
-        _info = _pointer(**_args)
+        # _info = _pointer(**_args)
+        _info = _pointer(request=request,config=_handler.config() )
         if _info:
             code = 200
         else:
-            _info = ""
+            # _info = ""
+            code = 500
             
         # _info  =io.BytesIO(_info)
         

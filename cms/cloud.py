@@ -121,13 +121,14 @@ def html (uri,_config) :
 #     return _config
 def download(**_args):
     _auth = _args['config']['system']['source']['auth']
-    #
+    
+    _request = _args['request']
     _handler = login(_auth)
-
-    if _args['doc'][-2:] in ['md','ht']:
-        _stream = html(_args['doc'],_args['config'])
+    
+    if _request.args['doc'][-2:] in ['md','ht']:
+        _stream = html(_request.args['doc'],_args['config'])
     else:
-        _stream = _handler.get_file_contents(_args['doc'])
+        _stream = _handler.get_file_contents(_request.args['doc'])
     _handler.logout()
     return _stream
     pass

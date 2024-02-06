@@ -24,9 +24,15 @@
 .main .header .subtitle {font-style:italic;font-size:14px; color:gray; text-transform: capitalize;}
 
 
-.main .menu {border:0; background-color: #f3f3f3; height:64px; padding:0px;
-    display:grid; grid-template:64px repeat(6,1fr); gap:4px; background-color: #ffffff;
+.main .menu {border:0; background-color: #f3f3f3; height:48px; padding:0px;
+    display:grid; grid-template:64px repeat(6,1fr); gap:4px; background-color: #f3f3f3;
+    align-items: center;
 }
+.main .menu .icon .button {
+    border:1px solid #CAD5E0; border-radius:8px; padding:2px;
+    ;
+}
+
 /* .main .content img{
     width:99%;
     border:1px solid #CAD5E0;
@@ -40,7 +46,17 @@
  } */
  blockquote {
     border-left:8px solid #D3D3D3; padding:4px;
+    background-color: #000000; color:#f3f3f3;
+    
     }
+blockquote code { margin-top:8px;
+    background:black; color:#f3f3f3;padding:10px; text-wrap: nowrap;
+    line-height: 2; width:99%;
+    font-family: 'Courier New', Courier, monospace; font-weight:lighter; font-size:14px;}
+.code {
+    padding:8px; font-family:'Courier New', Courier, monospace; font-weight: lighter;
+    background-color: #000000; color:#f3f3f3; font-size:14px;
+}    
 .main .content table {border-spacing: 2;}    
 .main .content table .active {font-size:14px}
 .main .content .banner {
@@ -48,9 +64,6 @@
     padding:0px; 
     
 }
-.code { margin-top:8px;
-    background:black; color:#d3d3d3;padding:10px; text-wrap: nowrap;
-    font-family: 'Courier New', Courier, monospace; font-weight:lighter; font-size:13px;}
  .main .pane { height:auto;}
  .main .pane iframe{ width:100%; border:0px; height:80%;}
 
