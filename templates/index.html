@@ -38,6 +38,7 @@ Vanderbilt University Medical Center
         <script src="{{system.context}}/static/js/jquery/jquery.js"></script>
         <script src="{{system.context}}/static/js/menu.js"></script>
         <script src="{{system.context}}/static/js/search.js"></script>
+        <script src="{{system.context}}/static/js/bootup.js"></script>
         <script src="{{system.context}}/static/js/fontawesome/js/all.js"></script>
     </head>
     <script>
@@ -50,61 +51,69 @@ Vanderbilt University Medical Center
          * @id  _domURI of the pane where the output is to be written
          * @uri _fileURI of the file 
          */
-        var CMSObserver = function(_domId,_fileURI){
-            this._domId     = _domId
-            this._fileURI   = _fileURI
-            this.apply      = function (_caller){
-                    var http = HttpClient.instance()
-                    http.setHeader('uri',_fileURI)
-                    var uri = '{{context}}/page'
-                    try{
-                        http.post(uri,function(x){
-                            console.log(jx.dom.exists(_domId))
-                            if (x.status == 200){
-                                // jx.dom.set.value(_domId,x.responseText)
-                                var _domElement = jx.dom.get.instance('div')
-                                _domElement.innerHTML = x.responseText
-                                jx.dom.append(_domId, _domElement)
+        // var CMSObserver = function(_domId,_fileURI){
+        //     this._domId     = _domId
+        //     this._fileURI   = _fileURI
+        //     this.apply      = function (_caller){
+        //             var http = HttpClient.instance()
+        //             http.setHeader('uri',_fileURI)
+        //             var uri = '{{context}}/page'
+        //             try{
+        //                 http.post(uri,function(x){
+        //                     console.log(jx.dom.exists(_domId))
+        //                     if (x.status == 200){
+        //                         // jx.dom.set.value(_domId,x.responseText)
+        //                         var _domElement = jx.dom.get.instance('div')
+        //                         _domElement.innerHTML = x.responseText
+        //                         jx.dom.append(_domId, _domElement)
 
                                 
-                            }
+        //                     }
                             
-                            _caller.notify()
-                        })
+        //                     _caller.notify()
+        //                 })
 
-                    }catch(error){
-                        _caller.notify()
-                    }
-            }
+        //             }catch(error){
+        //                 _caller.notify()
+        //             }
+        //     }
             
-        }
-        var finalize = function(_id){
-            this.apply = function(_caller){
-                menu.runScript('#'+_id)
-            }
-        }
-        if (_layout.on != null ){
-            //
-            // load and error are required
-            $(document).ready(function(){
-                jx.utils.keys(_layout.on.load).forEach(function(_id){
+        // }
+        // var finalize = function(_id){
+        //     this.apply = function(_caller){
+        //         menu.runScript('#'+_id)
+        //     }
+        // }
+        // if (_layout.on != null ){
+        //     //
+        //     // load and error are required
+        //     // $(document).ready(function(){
+        //     //     jx.utils.keys(_layout.on.load).forEach(function(_id){
                 
-                    var observers = 
-                    jx.utils.patterns.visitor(_layout.on.load[_id], function(_uri){
-                        return new CMSObserver(_id,_uri)
-                    })
-                    observers.push(new finalize(_id))
-                    //
-                    // At this point we can execute the observer design pattern
-                    //
-                    console.log(observers)
-                    jx.utils.patterns.observer(observers,'apply')
+        //     //         var observers = 
+        //     //         jx.utils.patterns.visitor(_layout.on.load[_id], function(_uri){
+        //     //             return new CMSObserver(_id,_uri)
+        //     //         })
+        //     //         observers.push(new finalize(_id))
+        //     //         //
+        //     //         // At this point we can execute the observer design pattern
+        //     //         //
+        //     //         console.log(observers)
+        //     //         jx.utils.patterns.observer(observers,'apply')
 
-                })
-            })
-        }
+        //     //     })
+        //     // })
+            
+        //     // $(document).ready(bootup.init)
+        // }
         
+        sessionStorage.setItem('{{system.id}}','{{system.context|safe}}')
         
+        var _layout = {{layout|tojson}}
+
+        $(document).ready( function(){
+            bootup.init('{{system.id}}',_layout)
+        })        
     </script>
     <body>
        

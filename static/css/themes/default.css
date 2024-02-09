@@ -13,3 +13,21 @@ padding-left:2%; padding-right:2%;
     align-self:center;
 }
 .main .pane {border-left:1px solid #CAD5E0; height:100%; padding:8px;}
+
+.busy-loading {
+    background: linear-gradient(90deg, #d3d3d3,#f3f3f3, #000000, #d3d3d3);
+    animation: gradient 15s ease infinite;
+    height:28; width:100%;
+}
+@keyframes gradient {
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
+}
+
