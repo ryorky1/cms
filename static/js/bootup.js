@@ -55,7 +55,10 @@ bootup.finalize = function(_id){
 }
 
 bootup.init = function(sys_id,_layout){
-    if (_layout){
+    if (!_layout) {
+        return ;
+    }
+    if (_layout.on){
         jx.utils.keys(_layout.on.load).forEach(function(_domId){
                 
             var observers = 
