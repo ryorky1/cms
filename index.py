@@ -2,7 +2,7 @@ __doc__ = """
     arguments :
         --config    path of the configuration otherwise it will look for the default in the working directory
 """
-from flask import Flask,render_template,send_from_directory,request, redirect
+from flask import Flask,render_template,send_from_directory,request, redirect, Response
 import flask
 import transport
 from transport import providers
@@ -37,7 +37,30 @@ def favicon():
         
     # #     return send_from_directory(_root, #_app.root_path, 'static/img'),
     #                            _logo, mimetype='image/vnd.microsoft.icon')
+@_app.route("/robots.txt")
+def robots_txt():
+    """
+    This function will generate a robots expression for a variety of crawlers, the paths will be provided by
+    menu options
+    """
+    global _route
+    _system = _route.get ().system()
 
+    _info  = ['''
+    User-agent: *
+    Allow: /
+    ''']
+
+    if 'routes' in _system  :
+        for _key in _system['routes'] :
+            _uri = '/'.join(['',_key])
+            _info.append(f'''
+    User-agent: *
+    Allow: {_uri}
+                        ''')
+    
+    # return '\n'.join(_info),200,{'Content-Type':'plain/text'}
+    return Response('\n'.join(_info), mimetype='text/plain')    
 @_app.route("/")
 def _index ():
     global _config
@@ -276,6 +299,7 @@ if __name__ == '__main__' :
     pass
    
     _path = SYS_ARGS['config'] if 'config' in SYS_ARGS else 'config.json'
+
     if os.path.exists(_path):
         _route = cms.engine.Router(path=_path)
         _args = _route.get().get_app()
