@@ -14,11 +14,11 @@ import copy
 import io
 import base64
 from jinja2 import Environment, BaseLoader
-
+import typer
 
 
 _app = Flask(__name__)
-
+cli = typer.Typer()
 @_app.route('/favicon.ico')
 def favicon():
     global _route
@@ -294,16 +294,39 @@ if len(sys.argv) > 1:
 
 
         i += 2
-if __name__ == '__main__' :
-    
-    pass
-   
-    _path = SYS_ARGS['config'] if 'config' in SYS_ARGS else 'config.json'
 
-    if os.path.exists(_path):
-        _route = cms.engine.Router(path=_path)
+
+@cli.command()
+def start (path:str='config.json') :
+    """
+    This function is designed to start the application with its associated manifest (configuration) location
+    """
+    global _route
+
+    if os.path.exists(path) and os.path.isfile(path):
+        _route = cms.engine.Router(path=path)
         _args = _route.get().get_app()
         _app.run(**_args)
+        _status = 'found'
+    else:
+        _status = 'not found'
+    print(f'''
+            manifest: {path}
+            status  : {_status}
+        ''')
+@cli.command(name='help')
+def _help() :
+    pass
+if __name__ == '__main__' :
+    cli()
+    # pass
+   
+    # _path = SYS_ARGS['config'] if 'config' in SYS_ARGS else 'config.json'
+
+    # if os.path.exists(_path):
+    #     _route = cms.engine.Router(path=_path)
+    #     _args = _route.get().get_app()
+    #     _app.run(**_args)
     #     _config = json.loads((open (_path)).read())
     #     if 'theme' not in _config['system'] :
     #         _config['system']['theme'] = 'magazine.css'
