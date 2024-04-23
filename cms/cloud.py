@@ -26,6 +26,24 @@ def _format_root_folder (_root):
         _root = _root[:-1]
     
     return _root.replace('//','/')
+def list_files(folder,_config) :
+    """
+    List the content of a folder (html/md) for now
+    """
+    _authfile = _config['system']['source']['auth']
+    _handler = login(_authfile)    
+    _files = _handler.list(folder,50)
+    
+    _content = []
+    for _item in _files :
+        if _item.file_type == 'file' and _item.get_content_type() in ['text/markdown','text/html'] :
+            _uri = '/'.join(_item.path.split('/')[2:])
+            _uri = _item.path
+            # _content.append({'text':_item.name.split('.')[0],'uri':_uri})
+            _content.append(_item.name)
+    
+    return _content
+
 def content(_args):
     """
     :url
@@ -49,10 +67,18 @@ def content(_args):
     _menu = {} #dict.fromkeys(_menu,[])
     for _item in _files :
         _folder = _item.path.split(_item.name)[0].strip()
-        _folder = _folder.replace(_root,'').replace('/','')
+        _folder = _folder.replace(_root,'').replace('//','') 
+
+        #
+        # The following lines are intended to prevent an irradict recursive read of a folder content
+        # We want to keep things simple as we build the menu
+        #
+        if len (_folder.split('/')) > 2:
+            continue
+        else:
+            _folder = _folder.replace('/','')
         if _item.name[0] in ['.','_'] or _folder == '':
             continue ;
-        
         if _item.file_type == 'file' and _item.get_content_type() in ['text/markdown','text/html'] :
             # _folder = _item.path.split(_item.name)[0].strip()
             # _folder = _folder.replace(_root,'').replace('//','')
@@ -61,12 +87,6 @@ def content(_args):
             _folder = _folder.replace('/' ,' ').strip()
             if _folder not in _menu :
                 _menu [_folder] = []
-            # print ([_item.name,_key, _key in _menu])
-
-            # _menuItem = _ref[_key]
-            # uri = '/'.join([_args['url'],_item.path])
-            # uri = _item
-            # print ([_menuItem, _menuItem in _menu])
             uri = '/'.join(_item.path.split('/')[2:])
             uri = _item.path
             _menu[_folder].append({'text':_item.name.split('.')[0],'uri':uri})
@@ -130,9 +150,15 @@ def download(**_args):
     else:
         _stream = _handler.get_file_contents(_request.args['doc'])
     _handler.logout()
+    
     return _stream
     pass
-
+def _format (uri,_config) :
+    """
+    This function does nothing but is used to satisfy the demands of a design pattern
+    @TODO: revisit the design pattern
+    """
+    return uri
 def plugins ():
     """
     This function publishes the plugins associated with this module

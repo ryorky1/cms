@@ -11,13 +11,17 @@ bootup.CMSObserver = function(_sysId,_domId,_fileURI){
     this.apply      = function (_caller){
             var http = HttpClient.instance()
             http.setHeader('uri',_fileURI)
-            var uri = sessionStorage[_sysId]+'/page'
+            
+            if (sessionStorage[_sysId] != null){
+                var uri = sessionStorage[_sysId]+'/page'
+            }else{
+                var uri = '/page'
+            }
             try{
                 var _domElement = jx.dom.get.instance('div')
                 
                 _domElement.className = 'busy-loading'
                 jx.dom.append(_domId, _domElement)
-
                 http.post(uri,function(x){
                     // console.log(jx.dom.exists(_domId))
                     // var _domElement = jx.dom.get.instance('div')
@@ -63,6 +67,7 @@ bootup.init = function(sys_id,_layout){
                 
             var observers = 
             jx.utils.patterns.visitor(_layout.on.load[_domId], function(_uri){
+                // _uri = _layout.root_prefix != null? (_layout.root_prefix+_uri) : _uri
                 return new bootup.CMSObserver(sys_id,_domId,_uri)
             })
             observers.push(new bootup.finalize(_domId))

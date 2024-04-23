@@ -9,9 +9,14 @@ from jinja2 import Environment, BaseLoader, FileSystemLoader
 import importlib
 import importlib.util
 from cms import disk, cloud
-
+from . import basic
 
 class Loader :
+    """
+    This class is designed to exclusively load configuration from disk into an object
+    :path       path to the configuraiton file
+    :location   original location (caller)
+    """
     def __init__(self,**_args):
         self._path = _args['path']
         self._original_location = None if 'location' not in _args else _args['location']
@@ -20,6 +25,7 @@ class Loader :
         self._menu = {}
         self._plugins={}
         self.load()
+        
     
     def load(self):
         """
@@ -32,19 +38,34 @@ class Loader :
         """
         Initialize & loading configuration from disk
         """
-        f = open (self._path) 
+        f = open (self._path)
         self._config = json.loads(f.read())
 
-       
         if self._caller :
             self._location = self._original_location.split(os.sep) # needed for plugin loading
             self._location = os.sep.join(self._location[:-1])
         self._config['system']['portal'] = self._caller != None
 
         #
-        # let's see if we have a location for a  key in the configuration
+        # let's see if we have a location for a  key (i.e security key) in the configuration
         #
+        self.update_config()
+        # _system = self._config['system']
+        # if 'source' in _system and 'key' in _system['source'] :
+        #     _path = _system['source']['key']
+        #     if os.path.exists(_path):
+        #         f = open(_path)
+        #         _system['source']['key'] = f.read()
+        #         f.close()
+        #         self._system = _system
+        #         self._config['system'] = _system
+    def update_config(self):
+        """
+        We are going to update the configuration (source.key, layout.root)
+        """        
         _system = self._config['system']
+        #
+        # updating security-key that allows the application to update on-demand
         if 'source' in _system and 'key' in _system['source'] :
             _path = _system['source']['key']
             if os.path.exists(_path):
@@ -53,6 +74,22 @@ class Loader :
                 f.close()
                 self._system = _system
                 self._config['system'] = _system
+        _layout = self._config['layout']
+        #
+        # update root so that the app can be launched from anywhere
+        #   This would help reduce the footprint of the app/framework
+        _path = os.sep.join(self._path.split(os.sep)[:-1])
+        _p = 'source' not in _system
+        _q = 'source' in _system and _system['source']['id'] != 'cloud'
+        _r = os.path.exists(_layout['root'])
+        if not _r and (_p or _q) :
+            #
+            # If we did running this app from installed framework (this should not apply to dependent apps)
+            #
+            _root = os.sep.join([_path,_layout['root']])
+            self._config['layout']['root'] = _root
+            self._config['layout']['root_prefix'] = _root
+
     def init_menu(self):
         """
         This function will read menu and sub-menu items from disk structure,
@@ -252,7 +289,8 @@ class Getter (Loader):
             _html = cloud.html(uri,dict(_args,**{'system':_system}))
             
         else:
-            _html = disk.html(uri)
+
+            _html = disk.html(uri,self.layout())
         # _html = (open(uri)).read()       
 
         
@@ -313,14 +351,19 @@ class Getter (Loader):
         else:
             _system= _data
         return _system
+    def layout(self):
+        return self._config['layout']
     def get_app(self):
         return self._config['system']['app']
 
 
 class Router :
     def __init__(self,**_args) :
-        path = _args['path']
-        _app = Getter (path = path)
+        
+        # _app = Getter (path = path)
+        _app = Getter (**_args)
+
+
         self._id = 'main'
         # _app.load()
         self._apps = {}
@@ -330,8 +373,8 @@ class Router :
             for _name in _system :
                 _path = _system[_name]['path']
                 self._apps[_name] = Getter(path=_path,caller=_app,location=_path)
-                print ([_name, self._apps[_name].plugins().keys()])
-        self._apps['main'] = _app
+        self._apps['main'] = _app    
+
     def set(self,_id):
         self._id = _id
     def get(self):

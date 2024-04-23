@@ -15,28 +15,28 @@ import io
 import base64
 from jinja2 import Environment, BaseLoader
 import typer
-
+import pandas as pd
 
 _app = Flask(__name__)
 cli = typer.Typer()
-@_app.route('/favicon.ico')
-def favicon():
-    global _route
-    _system = _route.get ().system()
-    _handler = _route.get()
+# @_app.route('/favicon.ico')
+# def favicon():
+#     global _route
+#     _system = _route.get ().system()
+#     _handler = _route.get()
 
-    _logo =_system['icon'] if 'icon' in _system else 'static/img/logo.svg'
-    return _handler.get(_logo)
-    # # _root = _route.get().config()['layout']['root']
-    # # print ([_system])
-    # # if 'source' in _system and 'id' in _system['source'] and (_system['source']['id'] == 'cloud'):
-    # #     uri = f'/api/cloud/downloads?doc=/{_logo}'
-    # #     print (['****' , uri])
-    #     # return redirect(uri,200) #,{'content-type':'application/image'}
-    # # else:
+#     _logo =_system['icon'] if 'icon' in _system else 'static/img/logo.svg'
+#     return _handler.get(_logo)
+#     # # _root = _route.get().config()['layout']['root']
+#     # # print ([_system])
+#     # # if 'source' in _system and 'id' in _system['source'] and (_system['source']['id'] == 'cloud'):
+#     # #     uri = f'/api/cloud/downloads?doc=/{_logo}'
+#     # #     print (['****' , uri])
+#     #     # return redirect(uri,200) #,{'content-type':'application/image'}
+#     # # else:
         
-    # #     return send_from_directory(_root, #_app.root_path, 'static/img'),
-    #                            _logo, mimetype='image/vnd.microsoft.icon')
+#     # #     return send_from_directory(_root, #_app.root_path, 'static/img'),
+#     #                            _logo, mimetype='image/vnd.microsoft.icon')
 @_app.route("/robots.txt")
 def robots_txt():
     """
@@ -66,29 +66,32 @@ def _index ():
     global _config
     global _route
     _handler = _route.get() 
-    _config = _handler.config()
-    _system = _handler.system()
-    _plugins= _handler.plugins()
-    _args = {}
-    # if 'plugins' in _config :
-    #     _args['routes']=_config['plugins']
-    # _system = cms.components.get_system(_config) #copy.deepcopy(_config['system'])
-    _html = ""
+    _config = _route.config()
+    # _config = _handler.config()
+    # _system = _handler.system()
+    # _plugins= _handler.plugins()
+    # _args = {}
+    # # if 'plugins' in _config :
+    # #     _args['routes']=_config['plugins']
+    # # _system = cms.components.get_system(_config) #copy.deepcopy(_config['system'])
+    # _html = ""
+    _args={}
     try:
-        
         uri = os.sep.join([_config['layout']['root'], _config['layout']['index']])
-        _html = _route.get().html(uri,'index',_config,_system)
+    #     # _html = _route.get().html(uri,'index',_config,_system)
+    #     _html = _handler.html(uri,'index')
         _index_page = "index.html"
+        _args = _route.render(uri,'index')
     except Exception as e:
-        print ()
+    #     print ()
         print (e)
         _index_page = "404.html"
-        _args['uri'] = request.base_url
-        pass
-    # if 'source' in _system :
-    #     del _system['source']
-    _args = {'layout':_config['layout'],'index':_html}
-    _args['system'] = _handler.system(skip=['source','app','route'])
+    #     _args['uri'] = request.base_url
+    #     pass
+    # # if 'source' in _system :
+    # #     del _system['source']
+    # _args = {'layout':_config['layout'],'index':_html}
+    # _args['system'] = _handler.system(skip=['source','app','route'])
     
     return render_template(_index_page,**_args)
 
@@ -105,36 +108,19 @@ def _dialog ():
     # global _config 
     global _route
     _handler = _route.get()
-    _system = _handler.system()
-    _config = _handler.config()
-    _uri = os.sep.join([_config['layout']['root'],request.headers['uri']])
-    # _uri = request.headers['uri']
+    _uri = request.headers['uri']
+    
     _id = request.headers['dom']
-    # _data = cms.components.data(_config)
-    _args = {} #{'system':_config['system']}
+    # _html = ''.join(["<div style='padding:1%'>",str( e.render(**_args)),'</div>'])
+    _args = _route.render(_uri,'html')
     _args['title'] = _id
-    # if 'plugins' in _config :
-    #     _args['routes'] = _config['plugins']
-    # _system = copy.deepcopy(_config['system'])
-    
-    # _html =  cms.components.html(_uri,_id,_config,_system)
-    _html =  _handler.html(_uri,_id,_config,_system)
-
-    e = Environment(loader=BaseLoader()).from_string(_html)     
-    # if 'source' in _system :
-    #     del _system['source']
-    _args['system'] = _handler.system(skip=['source','routes','app'])
-    
-    _args['html'] = _html
-    _html = ''.join(["<div style='padding:1%'>",str( e.render(**_args)),'</div>'])
-    
     return render_template('dialog.html',**_args) #title=_id,html=_html)
-    # return _html
-    # e = Environment(loader=BaseLoader()).from_string(_html)
-    # _data = cms.components.data(_config)
-    # _args = {'system':_config['system'],'data':_data}
-    
-    # _html = ( e.render(**_args))
+@_app.route("/caller/<app>/api/<module>/<name>")
+def _delegate_call(app,module,name):
+    global _route
+    _handler = _route._apps[app]
+    return _delegate(_handler,module,name)
+
 @_app.route('/api/<module>/<name>')
 def _getproxy(module,name) :
     """
@@ -145,12 +131,14 @@ def _getproxy(module,name) :
     # global _config
     global _route
     _handler = _route.get()
+    return _delegate(_handler,module,name)
 
-
+def _delegate(_handler,module,name):
     uri =  '/'.join(['api',module,name])
     # _args = dict(request.args,**{})
     # _args['config'] = _handler.config()
     _plugins = _handler.plugins()
+    
     if uri not in _plugins :
         _data = {}
         _code = 404
@@ -160,40 +148,46 @@ def _getproxy(module,name) :
         #     _data = pointer (**_args)
         # else:
         #     _data = pointer()
+        
         _data = pointer(request=request,config=_handler.config())
+        if type(_data) == pd.DataFrame :
+            _data = _data.to_dict(orient='records')
+        if type(_data) == list:
+            _data = json.dumps(_data)        
         _code = 200 if _data else 500
-    
-    
     return _data,_code
 @_app.route("/api/<module>/<name>" , methods=['POST'])
 def _post (module,name):
     # global _config
     global _route
     _handler = _route.get()
-    _config = _handler.config()
-    _plugins = _handler.plugins()
-    uri =  '/'.join(['api',module,name])
+    return _delegate(_handler,module,name)
+    # _config = _handler.config()
+    # _plugins = _handler.plugins()
+    # uri =  '/'.join(['api',module,name])
     
-    # _args = request.json
-    # _args['config'] = _config
-    code = 404
+    # # _args = request.json
+    # # _args['config'] = _config
+    # code = 404
     
-    _info = ""
-    if uri in _plugins :
-        _pointer = _plugins[uri]
-        # _info = _pointer(**_args)
-        _info = _pointer(request=request,config=_handler.config() )
-        if _info:
-            code = 200
-        else:
-            # _info = ""
-            code = 500
+    # _data = ""
+    # if uri in _plugins :
+    #     _pointer = _plugins[uri]
+    #     # _info = _pointer(**_args)
+    #     _data = _pointer(request=request,config=_handler.config() )
+    #     if type(_data) == pd.DataFrame :
+    #         _data = _data.to_dict(orient='records')
+    #     if type(_data) == list:
+    #         _data = json.dumps(_data)        
+
+    #     _code = 200 if _data else 500
+    
             
-        # _info  =io.BytesIO(_info)
+    #     # _info  =io.BytesIO(_info)
         
-        # _info = base64.encodebytes(_info.getvalue()).decode('ascii')
+    #     # _info = base64.encodebytes(_info.getvalue()).decode('ascii')
     
-    return _info,code
+    # return _data,code
 @_app.route('/version')
 def _version ():
     global _route
@@ -213,7 +207,7 @@ def reload():
         _systemKey = _system['source']['key']
     print ([_key,_systemKey,_systemKey == _key])
     if _key and _systemKey and _systemKey == _key :
-        _handler.load()
+        _handler.reload()
         return "",200
         pass
     return "",403
@@ -233,36 +227,42 @@ def cms_page():
         _id = _uri.split('/')[-1].split('.')[0]
     else:
         _id = request.headers['dom']
-    _args = {'layout':_config['layout']}
-    if 'plugins' in _config:
-        _args['routes'] = _config['plugins']
+    # _args = {'layout':_config['layout']}
+    # if 'plugins' in _config:
+    #     _args['routes'] = _config['plugins']
     
+    # _system = _handler.system() #cms.components.get_system(_config)
+    # # _html =  _handler.html(_uri,_id,_args,_system) #cms.components.html(_uri,_id,_args,_system)
+
+    # _html =  _handler.html(_uri,_id)
+    # # _system = cms.components.get_system(_config)
+    # _args['system'] = _handler.system(skip=['source','app'])
+    # e = Environment(loader=BaseLoader()).from_string(_html)
+    # _html = e.render(**_args)
+    if 'read?uri=' in _uri or 'download?doc=' in _uri :
+        _uri = _uri.split('=')[1]
     
-    _system = _handler.system() #cms.components.get_system(_config)
-    _html =  _handler.html(_uri,_id,_args,_system) #cms.components.html(_uri,_id,_args,_system)
-    e = Environment(loader=BaseLoader()).from_string(_html)
-    # _data = {} #cms.components.data(_config)
-    _system = cms.components.get_system(_config)
-    _args['system'] = _handler.system(skip=['source','app'])
-   
-    _html = e.render(**_args)
-    return _html,200
+    _args = _route.render(_uri,_id)
+    return _args[_id],200
+    # return _html,200
 @_app.route('/page')
 def _cms_page ():
     # global _config
     global _route
-    _handler = _route.get()
-    _config = _handler.config()
+    # _handler = _route.get()
+    # _config = _handler.config()
     _uri = request.args['uri']
     # _uri = os.sep.join([_config['layout']['root'],_uri])
     _title = request.args['title'] if 'title' in request.args else ''
-    _args = {'system':_handler.system()} #cms.components.get_system(_config) }
+    # _args = {'system':_handler.system()} #cms.components.get_system(_config) }
     # if 'plugins' in _config:
     #     _args['routes'] = _config['plugins']
-    _html = _handler.html(_uri,_title,_args) #  cms.components.html(_uri,_title,_args)
-    e = Environment(loader=BaseLoader()).from_string(_html)
-    _args['system'] = _handler.system(skip=['app','source'])
-    return e.render(**_args),200
+    # _html = _handler.html(_uri,_config) #  cmsc.components.html(_uri,_title,_args)
+    # e = Environment(loader=BaseLoader()).from_string(_html)
+    # _args['system'] = _handler.system(skip=['app','source'])
+    # return e.render(**_args),200
+    _args = _route.render(_uri,_title)
+    return _args[_title],200
 
 @_app.route('/set/<id>')
 def set(id):
@@ -272,8 +272,14 @@ def set(id):
 @_app.route('/<id>')    
 def _open(id):
     global _route
-    _route.set(id)
-    return _index()
+    _handler = _route.get()
+    if id not in _route._apps :
+
+        _args = {'config':_handler.config(), 'layout':_handler.layout(),'system':_handler.system(skip=['source','app'])}
+        return render_template("404.html",**_args)
+    else:
+        _route.set(id)
+        return _index()
 #
 # Let us bootup the application
 SYS_ARGS = {}
@@ -297,15 +303,25 @@ if len(sys.argv) > 1:
 
 
 @cli.command()
-def start (path:str='config.json') :
+def start (path:str='config.json',shared:bool=False) :
     """
     This function is designed to start the application with its associated manifest (configuration) location
+    :path   path to the  the manifest
+    :shared run in shared mode i.e 
     """
     global _route
 
     if os.path.exists(path) and os.path.isfile(path):
-        _route = cms.engine.Router(path=path)
-        _args = _route.get().get_app()
+        _args = {'path':path}
+        if shared :
+            _args['location'] = path
+            _args['shared'] = shared
+        
+        # _route = cms.engine.Router(**_args) #path=path,shared=shared)
+        _route = cms.engine.basic.CMS(**_args)
+        # dir(_route)
+        # _args = _route.get().get_app()
+        _args = _route.get().app()
         _app.run(**_args)
         _status = 'found'
     else:
@@ -319,49 +335,3 @@ def _help() :
     pass
 if __name__ == '__main__' :
     cli()
-    # pass
-   
-    # _path = SYS_ARGS['config'] if 'config' in SYS_ARGS else 'config.json'
-
-    # if os.path.exists(_path):
-    #     _route = cms.engine.Router(path=_path)
-    #     _args = _route.get().get_app()
-    #     _app.run(**_args)
-    #     _config = json.loads((open (_path)).read())
-    #     if 'theme' not in _config['system'] :
-    #         _config['system']['theme'] = 'magazine.css'
-    #     #
-    #     # root can be either on disk or in the cloud ...
-    #     #   root: "<path>"  reading from disk
-    #     #   root: {uid,token,folder}
-    #     #
-
-    #     _root = _config['layout']['root']        
-    #     _menu = cms.components.menu(_config)  
-    #     if 'order' in _config['layout'] and 'menu' in _config['layout']['order']:
-    #         _sortedmenu = {}
-    #         for _name in _config['layout']['order']['menu'] :
-    #             if _name in _menu :
-    #                 _sortedmenu[_name] = _menu[_name]
-            
-    #         _menu = _sortedmenu if _sortedmenu else _menu
-    #     _config['layout']['menu'] = _menu #cms.components.menu(_config)
-    #     # if 'data' in _config :
-    #     #     _config['data'] = cms.components.data(_config['data'])
-    #     #
-    #     _map = cms.components.plugins(_config)
-    #     _config['plugins'] = _map
-    #     # Let us load the plugins if any are available 
-    #     # if 'plugins' in _config :
-    #     #     _map = cms.components.plugins(_config)
-    #     #     if _map :  
-    #     #        _config['plugins'] = _map
-    #         #
-    #         # register the functions with Jinja2
-    #         # cms.components.context(_config)
-        
-    #     _args = _config['system']['app']
-    #     _app.run(**_args)
-    # else:
-    #     print (__doc__)
-    #     print ()    
