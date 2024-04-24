@@ -115,11 +115,13 @@ def html (uri,_config) :
     _handler = login(_config['system']['source']['auth'])
     _root = _format_root_folder(_config['layout']['root'])
     uri = _format_root_folder (uri)
-    
+    _context = _config['system']['context']
     
     _prefix = '/'.join (uri.split('/')[:-1])
     
-    _link = '/'.join(['{{context}}api/cloud/download?doc='+_prefix,'.attachments.'])
+    _link = '/'.join(['api/cloud/download?doc='+_prefix,'.attachments.'])
+    if _context :
+        _link = f'{_context}/{_link}'
     
     
     # _link = '/'.join(['api/cloud/download?doc='+_prefix,'_images'])
@@ -127,8 +129,10 @@ def html (uri,_config) :
     # print ([uri,uri[-2:] ,uri[-2:] in ['md','MD','markdown']])
     _handler.logout()
     # if uri.endswith('.md'):
-    
-    _html = _html.replace(_root,('{{context}}api/cloud/download?doc='+_root)).replace('.attachments.', copy.deepcopy(_link))
+    if not _context :
+        _html = _html.replace(_root,('api/cloud/download?doc='+_root)).replace('.attachments.', copy.deepcopy(_link))
+    else:
+        _html = _html.replace(_root,(f'{_context}api/cloud/download?doc='+_root)).replace('.attachments.', copy.deepcopy(_link))
     # _html = _html.replace('<br />','')
     return markdown(_html) if uri[-2:] in ['md','MD','Md','mD'] else _html
 # def update (_config):
@@ -159,8 +163,11 @@ def _format (uri,_config) :
     @TODO: revisit the design pattern
     """
     return uri
-def plugins ():
+def plugins (_context):
     """
     This function publishes the plugins associated with this module
     """
-    return {'api/cloud/download':download}
+    key = 'api/cloud/download'
+    if _context :
+        key = f'{_context}/{key}'
+    return {key:download}
