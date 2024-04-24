@@ -66,11 +66,6 @@ class Initializer :
         _config = self._config
         PATH= os.sep.join([_config['layout']['root'],'_plugins'])
         
-        # if not os.path.exists(PATH) :
-        #     #
-        #     # we need to determin if there's an existing 
-        #     print ([' **** ',PATH])
-        #     PATH = os.sep.join(self._path.split(os.sep)[:-1]+ [PATH] )
         if not os.path.exists(PATH) and self._location and os.path.exists(self._location) :
             #
             # overriding the location of plugins ...
@@ -79,7 +74,7 @@ class Initializer :
             else:
                 _location = self._location 
             PATH = os.sep.join([_location, _config['layout']['root'],'_plugins'])
-            
+        _context = _config['system']['context']
         _map = {}
         # if not os.path.exists(PATH) :
         #     return _map
@@ -93,9 +88,11 @@ class Initializer :
             if not os.path.exists(_path):
                 continue
             for _name in _conf[_key] :
-                _pointer = disk.plugins(path=_path,name=_name)
+                _pointer = disk.plugins(path=_path,name=_name,context=_context)
                 if _pointer :
-                    _uri = "/".join(["api",_key,_name])
+                    _uri = "/".join(["api",_key,_name]) 
+                    if _context :
+                        _uri = f'{_context}/{_uri}'
                     _map[_uri] = _pointer
         #
         # We are adding some source specific plugins to the user-defined plugins
@@ -103,9 +100,9 @@ class Initializer :
         #
         
         if self._ISCLOUD :
-            _plugins = cloud.plugins()
+            _plugins = cloud.plugins(_context)
         else:
-            _plugins = disk.plugins()
+            _plugins = disk.plugins(context=_context)
         #
         # If there are any plugins found, we should load them and use them
         
@@ -154,9 +151,10 @@ class Initializer :
         #
         # post-processing menu, overwrite items and behaviors
         #
+        
         _layout = copy.deepcopy(self._config['layout'])
         _overwrite = _layout['overwrite'] if 'overwrite' in _layout else {}
-        
+        _context = self.system()['context']
         for _name in _object :
             _submenu = _object[_name]
             _index = 0
@@ -251,18 +249,22 @@ class Initializer :
         _index = _layout['index']
         _newpath = os.sep.join([_path,_oroot])
         self._config['system']['portal'] = self._caller != None
-
+        _context = self.system()['context']
         if self._caller :
             #
-            self._config['system']['caller'] = {'icon':'/caller/main/' + self._caller.system()['icon']}
-            # self._config['system']['caller'] = {'icon': self._caller.icon()}
+            _callerContext = self._caller.system()['context']
+            if not self._config['system']['context'] :
+                self._config['system']['context'] = _callerContext
+            # self._config['system']['context'] = _callerContext
+            # self._config['system']['caller'] = {'icon':f'caller/main/' + self._caller.system()['icon']}
+            self._config['system']['caller'] = {'icon': 'caller/main/'+self._caller.system()['icon'].replace(_callerContext,'')}
         
         
         if os.path.exists(_newpath) and not self._ISCLOUD:
             #
             # LOG: rewrite due to the mode in which the site is being run
             #
-            _api = 'api/disk/read?uri='+_oroot
+            _api = f'{_context}/api/disk/read?uri='+_oroot
             _stream = json.dumps(self._config)
             _stream = _stream.replace(_oroot,_api)
             # self._config = json.loads(_stream)            
@@ -274,19 +276,19 @@ class Initializer :
         _logo = self._config['system']['logo']
         if self._ISCLOUD:
             
-            _icon = f'/api/cloud/download?doc=/{_logo}'
+            _icon = f'{_context}/api/cloud/download?doc=/{_logo}'
             
             
         else:
             
-            _icon = f'api/disk/read?uri={_logo}'  
+            _icon = f'{_context}/api/disk/read?uri={_logo}'  
             if disk.exists(uri=_logo,config=self._config):
                 _icon = _logo
             if self._location :
                 self._config['layout']['location'] = _path
                 
         self._config['system']['icon'] = _icon 
-        self._config['system']['logo'] = _logo
+        self._config['system']['logo'] = _logo 
         
         # self.set('layout.root',os.sep.join([_path,_oroot]))
         pass

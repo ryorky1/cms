@@ -8,7 +8,8 @@ var menu = {}
 * :id
 * :pid  parent identifier                                            
 */
-menu.apply  = function (uri,id,pid){
+
+menu.apply  = function (uri,id,pid,_context){
     id = id.replace(/ /g,'-')
     if(uri == null){
         return ;
@@ -19,7 +20,7 @@ menu.apply  = function (uri,id,pid){
    
         httpclient.setHeader('uri',uri)
         httpclient.setHeader('dom',id)
-        httpclient.post('/page',function(x){
+        httpclient.post(_context+'/page',function(x){
             var _html = x.responseText
             var template = document.createElement('template');
             template.innerHTML = _html.trim();

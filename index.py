@@ -75,9 +75,10 @@ def _index ():
     # #     _args['routes']=_config['plugins']
     # # _system = cms.components.get_system(_config) #copy.deepcopy(_config['system'])
     # _html = ""
-    _args={}
+    _args={'system':_handler.system(skip=['source','app','data']),'layout':_handler.layout()}
     try:
         uri = os.sep.join([_config['layout']['root'], _config['layout']['index']])
+        
     #     # _html = _route.get().html(uri,'index',_config,_system)
     #     _html = _handler.html(uri,'index')
         _index_page = "index.html"
@@ -93,7 +94,7 @@ def _index ():
     # _args = {'layout':_config['layout'],'index':_html}
     # _args['system'] = _handler.system(skip=['source','app','route'])
     
-    return render_template(_index_page,**_args)
+    return render_template(_index_page,**_args),200 if _index_page != "404.html" else 200
 
 # @_app.route('/id/<uid>') 
 # def people(uid):
@@ -134,10 +135,14 @@ def _getproxy(module,name) :
     return _delegate(_handler,module,name)
 
 def _delegate(_handler,module,name):
+    global _route
     uri =  '/'.join(['api',module,name])
     # _args = dict(request.args,**{})
     # _args['config'] = _handler.config()
     _plugins = _handler.plugins()
+    _context = _handler.system()['context']
+    if _context :
+        uri  = f'{_context}/{uri}'
     
     if uri not in _plugins :
         _data = {}
@@ -153,7 +158,7 @@ def _delegate(_handler,module,name):
         if type(_data) == pd.DataFrame :
             _data = _data.to_dict(orient='records')
         if type(_data) == list:
-            _data = json.dumps(_data)        
+            _data = json.dumps(_data)   
         _code = 200 if _data else 500
     return _data,_code
 @_app.route("/api/<module>/<name>" , methods=['POST'])
@@ -162,32 +167,7 @@ def _post (module,name):
     global _route
     _handler = _route.get()
     return _delegate(_handler,module,name)
-    # _config = _handler.config()
-    # _plugins = _handler.plugins()
-    # uri =  '/'.join(['api',module,name])
-    
-    # # _args = request.json
-    # # _args['config'] = _config
-    # code = 404
-    
-    # _data = ""
-    # if uri in _plugins :
-    #     _pointer = _plugins[uri]
-    #     # _info = _pointer(**_args)
-    #     _data = _pointer(request=request,config=_handler.config() )
-    #     if type(_data) == pd.DataFrame :
-    #         _data = _data.to_dict(orient='records')
-    #     if type(_data) == list:
-    #         _data = json.dumps(_data)        
 
-    #     _code = 200 if _data else 500
-    
-            
-    #     # _info  =io.BytesIO(_info)
-        
-    #     # _info = base64.encodebytes(_info.getvalue()).decode('ascii')
-    
-    # return _data,code
 @_app.route('/version')
 def _version ():
     global _route
@@ -252,23 +232,20 @@ def _cms_page ():
     # _handler = _route.get()
     # _config = _handler.config()
     _uri = request.args['uri']
+    
     # _uri = os.sep.join([_config['layout']['root'],_uri])
     _title = request.args['title'] if 'title' in request.args else ''
-    # _args = {'system':_handler.system()} #cms.components.get_system(_config) }
-    # if 'plugins' in _config:
-    #     _args['routes'] = _config['plugins']
-    # _html = _handler.html(_uri,_config) #  cmsc.components.html(_uri,_title,_args)
-    # e = Environment(loader=BaseLoader()).from_string(_html)
-    # _args['system'] = _handler.system(skip=['app','source'])
-    # return e.render(**_args),200
     _args = _route.render(_uri,_title)
     return _args[_title],200
 
 @_app.route('/set/<id>')
 def set(id):
     global _route
-    _handler = _route.set(id)
-    return redirect('/')
+    _route.set(id)
+    _handler = _route.get()
+    _context = _handler.system()['context']
+    _uri = f'/{_context}'.replace('//','/')
+    return redirect(_uri)
 @_app.route('/<id>')    
 def _open(id):
     global _route
