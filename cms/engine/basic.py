@@ -255,9 +255,8 @@ class Initializer :
             _callerContext = self._caller.system()['context']
             if not self._config['system']['context'] :
                 self._config['system']['context'] = _callerContext
-            # self._config['system']['context'] = _callerContext
-            # self._config['system']['caller'] = {'icon':f'caller/main/' + self._caller.system()['icon']}
             self._config['system']['caller'] = {'icon': 'caller/main/'+self._caller.system()['icon'].replace(_callerContext,'')}
+            _context = _callerContext
         
         
         if os.path.exists(_newpath) and not self._ISCLOUD:
