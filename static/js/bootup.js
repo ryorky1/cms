@@ -18,10 +18,10 @@ bootup.CMSObserver = function(_sysId,_domId,_fileURI){
                 var uri = '/page'
             }
             try{
-                var _domElement = jx.dom.get.instance('div')
+                // var _domElement = jx.dom.get.instance('div')
                 
-                _domElement.className = 'busy-loading'
-                jx.dom.append(_domId, _domElement)
+                // _domElement.className = 'busy-loading'
+                // jx.dom.append(_domId, _domElement)
                 http.post(uri,function(x){
                     // console.log(jx.dom.exists(_domId))
                     // var _domElement = jx.dom.get.instance('div')
@@ -34,8 +34,21 @@ bootup.CMSObserver = function(_sysId,_domId,_fileURI){
                         
                         
                         setTimeout(function(){
-                            _domElement.innerHTML = x.responseText
-                            _domElement.className = null
+                            // _domElement.innerHTML = x.responseText
+                            // _domElement.className = null
+                            // $(_domElement).html(x.responseText)
+                            
+                            
+                            $('#'+_domId).append(x.responseText)
+                            
+                            
+                            // $(_domElement).attr('class',_domId)
+
+                           
+                            //
+                            // If there is a script associated it must be extracted and executed
+                            // menu.runScript(_domId)
+                            // console.log([_domId, ' **** ',$(_domId + ' script')])
                         },1500)
 
                         

@@ -185,10 +185,10 @@ def reload():
         _systemKey = None
     elif 'key' in _system['source'] and _system['source']['key']:
         _systemKey = _system['source']['key']
-    print ([_key,_systemKey,_systemKey == _key])
-    if _key and _systemKey and _systemKey == _key :
-        _handler.reload()
-        return "",200
+        print ([_key,_systemKey,_systemKey == _key])
+        if _key and _systemKey and _systemKey == _key :
+            _handler.reload()
+            return "",200
         pass
     return "",403
 @_app.route('/page',methods=['POST'])
