@@ -5,7 +5,7 @@ Reads from nextcloud
 import nextcloud_client as nc
 import copy
 from mistune import markdown #version 0.8.4
-
+import os
 import time
 import json
 

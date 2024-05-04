@@ -51,11 +51,12 @@ class Initializer :
         """
         This function returns the appropriate handler to the calling code, The handler enables read/write from a location
         """
+        
         if self._ISCLOUD: #'source' in self._config['system'] and self._config['system']['source']['id'] == 'cloud' :
             return cloud
         else:
             return disk
-
+        
     def _imenu(self,**_args) :
         pass
     def _iplugins(self,**_args) :
@@ -394,8 +395,6 @@ class CMS:
         # _void = MicroService()
         
         _app = MicroService (**_args)
-
-
         self._id = 'main'
         # _app.load()
         self._apps = {}
@@ -414,8 +413,9 @@ class CMS:
     def config (self):
         return self.get().config()
     
-    def render(self,_uri,_id):
-        _handler = self.get()
+    def render(self,_uri,_id,_appid):
+        # _handler = self.get()
+        _handler = self._apps[_appid]
         _config = _handler.config()
         _args = {'layout':_handler.layout()}
         if 'plugins' in _config:
@@ -427,10 +427,8 @@ class CMS:
         _args[_id] =  str(e.render(**_args)) #,_args
         return _args
     def set(self,_id):
-        
         self._id = _id
     def get(self):
-        
         return self._apps['main'] if self._id not in self._apps else self._apps[self._id]
     def get_main(self):
         return self._apps['main']

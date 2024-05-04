@@ -2,7 +2,7 @@ __doc__ = """
     arguments :
         --config    path of the configuration otherwise it will look for the default in the working directory
 """
-from flask import Flask,render_template,send_from_directory,request, redirect, Response
+from flask import Flask,render_template,send_from_directory,request, redirect, Response, session
 import flask
 import transport
 from transport import providers
@@ -16,6 +16,7 @@ import base64
 from jinja2 import Environment, BaseLoader
 import typer
 import pandas as pd
+import uuid
 
 _app = Flask(__name__)
 cli = typer.Typer()
@@ -37,6 +38,11 @@ cli = typer.Typer()
         
 #     # #     return send_from_directory(_root, #_app.root_path, 'static/img'),
 #     #                            _logo, mimetype='image/vnd.microsoft.icon')
+def _getHandler () :
+    _id = session.get('app_id','main')
+    return _route._apps[_id]
+def _setHandler (id) :
+    session['app_id'] = id
 @_app.route("/robots.txt")
 def robots_txt():
     """
@@ -63,11 +69,13 @@ def robots_txt():
     return Response('\n'.join(_info), mimetype='text/plain')    
 @_app.route("/")
 def _index ():
-    global _config
-    global _route
-    _handler = _route.get() 
-    _config = _route.config()
-    # _config = _handler.config()
+    # global _config
+    # global _route
+    # _handler = _route.get() 
+    # _config = _route.config()
+    _handler = _getHandler()
+    _config = _handler.config()
+    print ([' serving ',session.get('app_id','NA'),_handler.layout()['root']])
     # _system = _handler.system()
     # _plugins= _handler.plugins()
     # _args = {}
@@ -82,7 +90,7 @@ def _index ():
     #     # _html = _route.get().html(uri,'index',_config,_system)
     #     _html = _handler.html(uri,'index')
         _index_page = "index.html"
-        _args = _route.render(uri,'index')
+        _args = _route.render(uri,'index',session.get('app_id','main'))
     except Exception as e:
     #     print ()
         print (e)
@@ -113,7 +121,7 @@ def _dialog ():
     
     _id = request.headers['dom']
     # _html = ''.join(["<div style='padding:1%'>",str( e.render(**_args)),'</div>'])
-    _args = _route.render(_uri,'html')
+    _args = _route.render(_uri,'html',session.get('app_id','main'))
     _args['title'] = _id
     return render_template('dialog.html',**_args) #title=_id,html=_html)
 @_app.route("/caller/<app>/api/<module>/<name>")
@@ -130,8 +138,9 @@ def _getproxy(module,name) :
     :_name  name of the function to execute
     """
     # global _config
-    global _route
-    _handler = _route.get()
+    # global _route
+    # _handler = _route.get()
+    _handler = _getHandler()
     return _delegate(_handler,module,name)
 
 def _delegate(_handler,module,name):
@@ -164,8 +173,9 @@ def _delegate(_handler,module,name):
 @_app.route("/api/<module>/<name>" , methods=['POST'])
 def _post (module,name):
     # global _config
-    global _route
-    _handler = _route.get()
+    # global _route
+    # _handler = _route.get()
+    _handler = _getHandler()
     return _delegate(_handler,module,name)
 
 @_app.route('/version')
@@ -198,9 +208,10 @@ def cms_page():
     """
     # global _config
     global _route
-    _handler = _route.get()
+    # _handler = _route.get()
+    # _config = _handler.config()
+    _handler = _getHandler()
     _config = _handler.config()
-
     # _uri = os.sep.join([_config['layout']['root'],request.headers['uri']])
     _uri = request.headers['uri']
     if 'dom' not in request.headers :
@@ -222,7 +233,7 @@ def cms_page():
     if 'read?uri=' in _uri or 'download?doc=' in _uri :
         _uri = _uri.split('=')[1]
     
-    _args = _route.render(_uri,_id)
+    _args = _route.render(_uri,_id,session.get('app_id','main'))
     return _args[_id],200
     # return _html,200
 @_app.route('/page')
@@ -235,48 +246,53 @@ def _cms_page ():
     
     # _uri = os.sep.join([_config['layout']['root'],_uri])
     _title = request.args['title'] if 'title' in request.args else ''
-    _args = _route.render(_uri,_title)
+    _args = _route.render(_uri,_title,session.get('app_id','main'))
     return _args[_title],200
 
 @_app.route('/set/<id>')
 def set(id):
     global _route
-    _route.set(id)
-    _handler = _route.get()
+    _setHandler(id)
+    # _route.set(id)
+    # _handler = _route.get()
+    _handler = _getHandler()
     _context = _handler.system()['context']
     _uri = f'/{_context}'.replace('//','/')
     return redirect(_uri)
 @_app.route('/<id>')    
 def _open(id):
     global _route
-    _handler = _route.get()
+    # _handler = _route.get()
+
+    _handler = _getHandler()
     if id not in _route._apps :
 
         _args = {'config':_handler.config(), 'layout':_handler.layout(),'system':_handler.system(skip=['source','app'])}
         return render_template("404.html",**_args)
     else:
-        _route.set(id)
+        _setHandler(id)
+        # _route.set(id)
         return _index()
 #
 # Let us bootup the application
-SYS_ARGS = {}
+# SYS_ARGS = {}
 
-if len(sys.argv) > 1:
+# if len(sys.argv) > 1:
     
-    N = len(sys.argv)
-    for i in range(1,N):
-        value = None
-        if sys.argv[i].startswith('--'):
-            key = sys.argv[i][2:] #.replace('-','')
-            SYS_ARGS[key] = 1			
-            if i + 1 < N:
-                value = sys.argv[i + 1] = sys.argv[i+1].strip()
-            if key and value and not value.startswith('--'):
-                SYS_ARGS[key] = value
+#     N = len(sys.argv)
+#     for i in range(1,N):
+#         value = None
+#         if sys.argv[i].startswith('--'):
+#             key = sys.argv[i][2:] #.replace('-','')
+#             SYS_ARGS[key] = 1			
+#             if i + 1 < N:
+#                 value = sys.argv[i + 1] = sys.argv[i+1].strip()
+#             if key and value and not value.startswith('--'):
+#                 SYS_ARGS[key] = value
                 
 
 
-        i += 2
+#         i += 2
 
 
 @cli.command()
@@ -295,10 +311,12 @@ def start (path:str='config.json',shared:bool=False) :
             _args['shared'] = shared
         
         # _route = cms.engine.Router(**_args) #path=path,shared=shared)
+        
         _route = cms.engine.basic.CMS(**_args)
         # dir(_route)
         # _args = _route.get().get_app()
         _args = _route.get().app()
+        _app.secret_key = str(uuid.uuid4())
         _app.run(**_args)
         _status = 'found'
     else:
