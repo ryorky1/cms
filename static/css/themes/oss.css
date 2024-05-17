@@ -49,14 +49,16 @@
     background-color: #000000; color:#f3f3f3;
     
     }
-blockquote code { margin-top:8px;
+/* blockquote code { margin-top:8px;
     background:black; color:#f3f3f3;padding:10px; text-wrap: nowrap;
     line-height: 2; width:99%;
-    font-family: 'Courier New', Courier, monospace; font-weight:lighter; font-size:14px;}
-.code {
-    padding:8px; font-family:'Courier New', Courier, monospace; font-weight: lighter;
-    background-color: #000000; color:#f3f3f3; font-size:14px;
-}    
+    font-family: 'Courier New', Courier, monospace; font-weight:lighter; font-size:14px;} */
+.source-code {
+    font-family:courier; background-color: #000000; COLOR:#ffffff;  
+    padding-left:10px;
+    padding:8px;
+    border-left:8px solid #CAD5E0; margin-left:10px; font-weight: bold;
+}
 .main .content table {border-spacing: 2;}    
 .main .content table .active {font-size:14px}
 .main .content .banner {
