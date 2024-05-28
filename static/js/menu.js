@@ -94,6 +94,7 @@ menu.runScript  = function(_id){
     
     jx.utils.patterns.visitor(scripts,function(_item){
        if(_item.text.trim().length > 0){
+            
           var _code = eval(_item.text)
           var id = _id
           if (_item.parentNode != null){
