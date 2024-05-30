@@ -55,8 +55,11 @@
     font-family: 'Courier New', Courier, monospace; font-weight:lighter; font-size:14px;} */
 .source-code {
     font-family:courier; background-color: #000000; COLOR:#ffffff;  
-    padding-left:10px;
+    
     padding:8px;
+    padding-left:10px;
+    text-wrap: wrap;
+    width:calc(100% - 40px);
     border-left:8px solid #CAD5E0; margin-left:10px; font-weight: bold;
 }
 .main .content table {border-spacing: 2;}    
