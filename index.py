@@ -17,6 +17,7 @@ from jinja2 import Environment, BaseLoader
 import typer
 import pandas as pd
 import uuid
+import datetime
 
 _app = Flask(__name__)
 cli = typer.Typer()
@@ -317,6 +318,7 @@ def start (path:str='config.json',shared:bool=False) :
         # _args = _route.get().get_app()
         _args = _route.get().app()
         _app.secret_key = str(uuid.uuid4())
+        _app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(minutes=30)
         _app.run(**_args)
         _status = 'found'
     else:
