@@ -15,6 +15,10 @@ import io
 import base64
 from jinja2 import Environment, BaseLoader
 import typer
+from typing_extensions import Annotated
+from typing import Optional
+
+
 import pandas as pd
 import uuid
 import datetime
@@ -274,30 +278,12 @@ def _open(id):
         _setHandler(id)
         # _route.set(id)
         return _index()
-#
-# Let us bootup the application
-# SYS_ARGS = {}
-
-# if len(sys.argv) > 1:
-    
-#     N = len(sys.argv)
-#     for i in range(1,N):
-#         value = None
-#         if sys.argv[i].startswith('--'):
-#             key = sys.argv[i][2:] #.replace('-','')
-#             SYS_ARGS[key] = 1			
-#             if i + 1 < N:
-#                 value = sys.argv[i + 1] = sys.argv[i+1].strip()
-#             if key and value and not value.startswith('--'):
-#                 SYS_ARGS[key] = value
-                
-
-
-#         i += 2
 
 
 @cli.command()
-def start (path:str='config.json',shared:bool=False) :
+def start (
+    path:Annotated[str,typer.Argument(help="path of the manifest file")]='qcms-manifest.json',
+    shared:bool=False) :
     """
     This function is designed to start the application with its associated manifest (configuration) location
     :path   path to the  the manifest
@@ -307,9 +293,11 @@ def start (path:str='config.json',shared:bool=False) :
 
     if os.path.exists(path) and os.path.isfile(path):
         _args = {'path':path}
-        if shared :
-            _args['location'] = path
-            _args['shared'] = shared
+        # if shared :
+        #     _args['location'] = path
+        #     _args['shared'] = shared
+        _args['location'] = path
+        _args['shared'] = shared
         
         # _route = cms.engine.Router(**_args) #path=path,shared=shared)
         
@@ -318,7 +306,7 @@ def start (path:str='config.json',shared:bool=False) :
         # _args = _route.get().get_app()
         _args = _route.get().app()
         _app.secret_key = str(uuid.uuid4())
-        _app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(minutes=30)
+        _app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(hours=24)
         _app.run(**_args)
         _status = 'found'
     else:

@@ -315,7 +315,7 @@ class Accessor (Initializer):
                 self._config  = json.loads(_stream)
             elif type(_stream) == io.StringIO :
                 self._config =  json.loads( _stream.read())
-        self._ISCLOUD = 'source' in self._config['system'] and self._config['system']['source']['id'] == 'cloud'
+        self._ISCLOUD = 'source' in self._config['system'] and self._config['system']['source'] and self._config['system']['source']['id'] == 'cloud'
         #
         #
         # self._name = self._config['system']['name'] if 'name' in self._config['system'] else _args['name']
