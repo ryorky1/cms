@@ -1,0 +1,340 @@
+#!/usr/bin/env python
+import numpy as np
+import os
+import sys
+import json
+import importlib
+import importlib.util
+from git.repo.base import Repo
+import typer
+from typing_extensions import Annotated
+from typing import Optional
+import meta
+import uuid
+from termcolor import colored
+import base64
+import io
+from cms import index
+
+start = index.start
+
+__doc__ = """
+(c) 2022 Quick Content Management System - QCMS
+Health Information Privacy Lab - Vanderbilt University Medical Center
+MIT License
+
+Is a Python/Flask template for creating websites using disk structure to build the site and loading custom code
+The basic template for a flask application will be created in a specified location, within this location will be found a folder "content"
+    - within the folder specify the folder structure that constitute the menu
+Usage :
+    qcms --create <path> --version <value> --title <title> --subtitle <subtitle>
+"""
+
+PASSED = ' '.join(['[',colored(u'\u2713', 'green'),']'])
+FAILED= ' '.join(['[',colored(u'\u2717','red'),']'])
+
+INVALID_FOLDER = """
+{FAILED} Unable to proceed, could not find project manifest. It should be qcms-manifest.json
+"""
+#
+# handling cli interface
+cli = typer.Typer()
+
+def _get_config (path) :
+    if os.path.exists(path) :
+        f = open(path) 
+        _conf = json.loads(f.read())
+        f.close()
+    else:
+        _conf = {}
+    return _conf
+def _isvalid(_allowed,**_args):
+    
+    if not list(set(_allowed) - set(_args.keys())) :
+        _pargs = {}
+        for key in _allowed :
+            _pargs [key] = _args[key]
+        return _pargs
+    return False
+ 
+def write_config(_config, path):
+        f = open(path,'w')
+        f.write( json.dumps(_config)) ;
+        f.close()
+        
+def _system(**_args):
+    """
+        Both version and context must be provided otherwise they are ignored
+        :version
+        :context    context
+    """
+    _info =  _isvalid(['version','context'],**_args) 
+    _info['theme'] = 'default.css'
+    _info = _info if _info else {'version':'0.0.0','context':'','theme':'default.css'}
+    if _info :
+        _info['logo'] = None if 'logo' not in _args else _args['logo']
+    #
+    # There is an aggregation entry here in app
+    _appInfo = {'debug':True,'port':8084,'threaded':True,'host':'0.0.0.0'}
+    if 'app' not in _args:
+        _info['app']  = _appInfo
+    else:
+        _info['app'] = dict(_appInfo,**_args['app'])
+        
+    return _info
+def _header(**_args):
+    return  _isvalid(['logo','title','subtitle'],**_args)
+def _layout(**_args):
+    _info = _isvalid(['root','index'],**_args)
+    _info['on'] = {"load":{},"error":{}}
+    _url = 'qcms.co'
+    _overwrite = {"folder1":{"type":"redirect","url":_url},"folder2":{"type":"dialog"},"folder3":{"type":"dialog","url":_url}}
+    _info['icons'] = {"comment":"use folder names as keys and fontawesome type as values to add icons to menu"}
+    _info["api"] = {"comment":"use keys as uri and function calls as values"}
+    _info['map'] = {},
+    _info['order'] = {'menu':[]}
+    _info['overwrite'] = _overwrite
+    return _info
+    
+def make (**_args):
+    """
+    :context
+    :port   port to be served
+    
+    :title  title of the application
+    :root   folder of the content to be scanned
+    """
+    if 'port' in _args :
+        _args['app'] = {'port':_args['port']}
+        del _args['port']
+    if 'context' not in _args :
+        _args['context'] = ''
+    _info ={'system': _system(**_args)}
+    _hargs = {'title':'QCMS'} if 'title' not in _args else {'title':_args['title']}
+    _hargs['subtitle'] = '' if 'subtitle' not in _args else _args['subtitle']
+    _hargs['logo'] = True
+    
+    
+    
+    
+    _info['layout'] = _layout(root=_args['root'],index='index.html')
+    _info['layout']['header'] = _header(**_hargs)
+    #
+   
+
+    if 'footer' in _args :
+        _info['layout']['footer'] = [{'text':_args['footer']}] if type(_args['footer']) != list else [{'text':term} for term in _args['footeer']]
+    else:
+        _info['layout']['footer'] = [{'text':'Vanderbilt University Medical Center'}]
+    
+    return _info
+
+@cli.command(name="info")
+def _info():
+    """
+    This function returns metadata information about this program, no parameters are needed
+    """
+    print ()
+    print (meta.__name__,meta.__version__)
+    print (meta.__author__,meta.__email__)
+    print ()
+
+@cli.command(name='set-app')
+# def set_app (host:str="0.0.0.0",context:str="",port:int=8084,debug=True):
+def set_app (host:Annotated[str,typer.Argument(help="bind host IP address")]="0.0.0.0",
+             context:Annotated[str,typer.Argument(help="if behind a proxy server (no forward slash needed)")]="",
+             port:Annotated[int,typer.Argument(help="port on which to run the application")]=8084,
+             debug:Annotated[bool,typer.Argument(help="set debug mode on|off")]=True):
+    """
+    This function consists in editing application access i.e port, debug, and/or context
+
+    :context    alias or path for applications living behind proxy server
+    """
+    global INVALID_FOLDER
+    _config = _get_config()
+    if _config :
+        _app = _config['system']['app']
+        _app['host'] = host
+        _app['port'] = port
+        _app['debug'] = debug
+        _config['system']['context'] = context
+        _config['app'] = _app
+        write_config(_config)
+        _msg = f"""{PASSED} Successful update, good job !
+        """
+    else:
+        _msg = INVALID_FOLDER
+    print (_msg)
+@cli.command(name='set-cloud')
+# def set_cloud(path:str): #url:str,uid:str,token:str):
+def set_cloud(path:Annotated[str,typer.Argument(help="path of the auth-file for the cloud")]): #url:str,uid:str,token:str):
+    """
+    This function overwrites or sets token information for nextcloud. This function will load the content from the cloud instead of locally
+
+    :url    url of the nextcloud
+    :uid    account identifier
+    :token  token to be used to signin
+    """
+    if os.path.exists(path):
+        f = open (path)
+        _auth = json.loads(f.read())
+        if not set(['url','token','uid'])  -  set(_auth.keys()) :
+            url = _auth['url']
+
+            if os.path.exists('qcms-manifest.json') :
+                _config = _get_config()
+                _config['system']['source'] = path #{'id':'cloud','auth':{'url':url,'uid':uid,'token':token}}
+                write_config(_config)
+                title = _config['layout']['header']['title']
+                _msg = f"""
+                Successfully update, good job!
+                {url} 
+                """
+            else:
+                _msg = INVALID_FOLDER
+        else:
+            _msg = """NOT A VALID NEXTCLOUD FILE"""
+    else:
+        _msg = INVALID_FOLDER
+    print (_msg)
+@cli.command(name='set-key')
+# def set_key(path):
+def set_key(
+    manifest:Annotated[str,typer.Argument(help="path of the manifest file")],
+    keyfile:Annotated[str,typer.Argument(help="path of the key file to generate")]):
+    """
+    create a security key to control the application during developement. The location must have been created prior.
+
+    """
+    if not os.path.exists(keyfile):
+        f = open(keyfile,'w')
+        f.write(str(uuid.uuid4()))
+        f.close()
+        #
+        _config = _get_config(manifest)
+        if 'source' not in _config['system']:
+            _config['system']['source'] = {'id':'disk'}
+        _config['system']['source']['key'] = keyfile
+        write_config(_config,manifest)
+        _msg = f"""{PASSED} A key was generated and written to {keyfile}
+            use this key in header to enable reload of the site ...`
+        """
+    else:
+        _msg = f"""{FAILED} Could NOT generate a key, because it would seem you already have one
+            Please manually delete {keyfile}
+
+            
+        """
+    print (_msg)
+
+def load(**_args):
+    """
+    This function will load external module form a given location and return a pointer to a function in a given module
+    :path   absolute path of the file (considered plugin) to be loaded
+    :name   name of the function to be applied
+    """
+    _path = _args['path'] #os.sep.join([_args['root'],'plugin'])
+    if os.path.isdir(_path):
+        files = os.listdir(_path)
+        if files :
+            files = [name for name in files if name.endswith('.py')]
+            if files:
+                _path = os.sep.join([_path,files[0]])
+            else:
+                return None
+        else:
+            return None
+    #-- We have a file ...  
+    _name = _args['name']
+    spec = importlib.util.spec_from_file_location(_name, _path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    
+    return getattr(module,_name) if hasattr(module,_name) else None
+
+@cli.command (name='create')
+# def create(folder:str,root:str,index:str='index.html',title:str='qcms',subtitle:str='',footer:str='Quick Content Management System',version:str='0.1'):
+def create(folder:Annotated[str,typer.Argument(help="path of the project folder")],
+           root:Annotated[str,typer.Argument(help="folder of the content (inside the project folder)")],
+           index:str=typer.Option(default="index.html",help="index file (markup or html)"), #Annotated[str,typer.Argument(help="index file to load (.html or markup)")]='index.html',
+           title:str=typer.Option(default="QCMS PROJECT", help="name of the project") , #Annotated[str,typer.Argument(help="title of the project")]='QCMS - TITLE',
+           subtitle:str=typer.Option(default="designed & built by The Phi Technology",help="tag line about the project (sub-title)"), #Annotated[str,typer.Argument(help="subtitle of the project")]='qcms - subtitle',
+           footer:str=typer.Option(default="Quick Content Management System",help="text to be placed as footer"), #Annotated[str,typer.Argument(help="text on the footer of the main page")]='Quick Content Management System',
+           version:str=typer.Option(default="0.2",help="version number") #Annotated[str,typer.Argument(help="version of the site")]='0.1'
+           ):
+    """
+    This function will create a project folder by performing a git clone (pull the template project)
+    and adding a configuration file to that will bootup the project
+
+    
+    folder  project folder
+    
+    root    name/location of root folder associated with the web application
+
+    @TODO: 
+        - add port, 
+    """
+    #global SYS_ARGS
+    #folder  = SYS_ARGS['create']
+   
+    url = "https://dev.the-phi.com/git/cloud/cms.git" 
+    #if 'url' in SYS_ARGS :
+    #    url = SYS_ARGS['url']
+    print ("\tcreating project into folder " +folder)
+    #
+    # if standalone, then we should create the git repository
+    # if standalone :
+    #     _repo = Repo.clone_from(url,folder)
+    #     #
+    #     # removing remote folder associated with the project
+    #     _repo.delete_remote(remote='origin')
+    # else:
+    #     os.makedirs(folder)
+
+
+    #
+    # @TODO: root should be handled in 
+    rootpath = os.sep.join([folder,root]) 
+    _img = None
+    if not os.path.exists(rootpath) :
+        print (f"{PASSED} Creating content folder "+rootpath)
+        os.makedirs(rootpath)
+        os.makedirs(os.sep.join([rootpath,'_images']))
+        _img = """data:image/png;base64,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"""
+        _,_img = _img.split(',',1)
+        logo = os.sep.join([rootpath,'_images','logo.png'])
+        f = open(logo,'wb')
+        f.write(base64.b64decode(_img))
+        f.close()
+
+    _html = __doc__.replace("<","&lt;").replace(">","&gt;").replace("Usage","<br>Usage")
+    
+    if not os.path.exists(os.sep.join([rootpath,'index.html'])) :
+        f = open(os.sep.join([rootpath,'index.html']),'w')
+        f.write(_html)
+        f.close()
+    print (f'{PASSED} configuration being written to project folder')
+    _args = {'title':title,'subtitle':subtitle,'version':version,'root':root,'index':index}
+    _config = make(**_args)
+    #
+    # updating logo reference (default for now)
+    _config['system']['logo'] = os.sep.join([_config['layout']['root'],'_images/logo.png'])
+   
+
+    f = open(os.sep.join([folder,'qcms-manifest.json']),'w')
+    f.write(json.dumps(_config))
+    f.close()
+    return _config     
+@cli.command(name="bootup")
+def bootup (path:Annotated[str,typer.Argument(help="path of the manifest file")]='qcms-manifest.json'):
+    """
+    This function will launch a site/project given the location of the manifest file
+    """
+    index.start(path)
+     
+def reset():
+    """
+    """
+    global SYS_ARGS
+if __name__ == '__main__':
+    cli()
