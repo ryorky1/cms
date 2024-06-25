@@ -325,6 +325,11 @@ def create(folder:Annotated[str,typer.Argument(help="path of the project folder"
     f.write(json.dumps(_config))
     f.close()
     return _config     
+
+@cli.command (name='reload')
+def reload (path) :
+    if os.path.exists (path):
+        pass
 @cli.command(name="bootup")
 def bootup (path:Annotated[str,typer.Argument(help="path of the manifest file")]='qcms-manifest.json'):
     """

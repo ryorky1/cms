@@ -8,7 +8,7 @@ import importlib
 import importlib.util
 # from cms import disk, cloud, engine
 # import cloud
-import index
+# import index
 # class components :
 #     # @staticmethod
 #     # def folders (_path):
