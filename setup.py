@@ -9,7 +9,7 @@ args    = {
     "license":meta.__license__,
     # "packages":["transport","info","transport/sql"]},
 
-    "packages": find_packages(include=['meta','cms', 'cms.*'])}
+    "packages": find_packages(include=['meta','cms', 'cms.*','cms.index'])}
 args["keywords"]=['cms','www','https','flask','data-transport']
 args["install_requires"] = ['flask','gitpython','termcolor','flask-session','mistune','typer','data-transport@git+https://github.com/lnyemba/data-transport.git']
 args['classifiers'] = ['Topic :: utilities', 'License :: MIT']
