@@ -1,0 +1,9 @@
+<!--
+    This file contains the panes for the various content on the page
+-->
+
+{%for _name in layout.menu %}
+    <div id="{{_name}}" class="{{_name}}"></div>
+{%endfor%}
+
+{{index|safe}}
